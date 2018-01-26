@@ -1,0 +1,30 @@
+{
+  "name": "ggj18",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tehsenaus/ggj18.git"
+  },
+  "author": "SKK",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tehsenaus/ggj18/issues"
+  },
+  "homepage": "https://github.com/tehsenaus/ggj18#readme",
+  "dependencies": {
+    "express": "^4.16.2",
+    "preact": "^8.2.7"
+  },
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "webpack": "^3.10.0"
+  }
+}
