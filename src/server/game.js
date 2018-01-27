@@ -37,6 +37,10 @@ export function* lobby(game) {
                     name: data.name
                 }
             };
+            game = yield sendUpdate({
+                ...game,
+                players
+            });
         }
     }
 }

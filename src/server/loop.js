@@ -7,7 +7,7 @@ export function runGameLoop(generator) {
 
     const inputCallbacks = {};
 
-    const processValue = async value => {
+    const processValue = context => async value => {
         console.log('processValue', value);
 
         switch ( value.type ) {
@@ -24,32 +24,50 @@ export function runGameLoop(generator) {
                     inputCallbacks[value.inputType] = resolve;
                 });
             
-            case 'either':
-                return await Promise.race(
-                    value.options.map(processValue)
+            case 'either': {
+                let done = false;
+                const eitherContext = {
+                    // We are done if this branch is done, or if any outer branch is done
+                    get done() { return done || context.done }
+                };
+                const res = await Promise.race(
+                    value.options.map(processValue(eitherContext))
                 );
+
+                // Mark as done, so any sub-generators stop
+                done = true;
+
+                return res;
+            }
 
             case 'call':
                 const res = value.fn();
                 if ( res && typeof res.next === 'function' ) {
-                    return await pump(res);
+                    return await pump(context, res);
                 } else {
                     return await res;
                 }
+            
+            default:
+                return value;
         }
     }
 
-    const pump = async (generator, sendValue) => {
+    const pump = async (context, generator, sendValue) => {
         const { value, done } = generator.next(sendValue);
 
+        if ( context.done ) {
+            console.log('pump: context is done');
+            return;
+        }
         if ( done ) {
-            console.log('runGameLoop: done');
-            return sendValue;
+            console.log('pump: done');
+            return value;
         };
 
-        const returnVal = await processValue(value);
-        
-        return await pump(generator, returnVal);
+        const returnVal = await processValue(context)(value);
+
+        return await pump(context, generator, returnVal);
     };
 
     (function loop() {
@@ -63,7 +81,7 @@ export function runGameLoop(generator) {
         }).then(loop);
     })();
 
-    const promise = pump(generator);
+    const promise = pump({}, generator);
 
     return {
         sendInput: (clientId, inputType, data) => {
