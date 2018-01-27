@@ -163,9 +163,10 @@ function* countdown(timeout) {
 
 function* waitForWinningPair() {
   let guesses = {};
-  let {playerPairMapping, passwords} = yield sendUpdate({guesses});
-
   let winningPair;
+
+  let {playerPairMapping, passwords} = yield sendUpdate({guesses, winningPair});
+
   while (!winningPair) {
     const { clientId, data } = yield getInput(GUESS_PASSWORD_INPUT);
     const playerId = clientId;
