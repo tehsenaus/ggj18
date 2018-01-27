@@ -1,8 +1,10 @@
 
 import express from 'express';
-import {runGame, getStateUpdate} from './game';
+import {runGameLoop, runGame, getStateUpdate} from './game';
 
 const app = express();
+
+runGameLoop(runGame());
 
 app.get('/state', async (req, res) => {
     res.json(await getStateUpdate(req.query.id, req.query.seq));

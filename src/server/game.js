@@ -6,48 +6,67 @@ let players = {};
 let nextId = 0;
 let seqNo = 0;
 let nextStatePromise = Promise.resolve({});
-let sendUpdate;
+let _sendUpdate;
 
-export async function runGame() {
-    console.log('runGame');
-    const players = await lobby();
-    for (let round = 0; round < ROUNDS; round++) {
-        await runRound(players);
-    }
-    endGame(players);
-    sendUpdate();
-}
-
-async function lobby(game) {
-    game = {
+export function* lobby(game) {
+    game = yield sendUpdate({
         ...game,
         phase: 'lobby'
-    }
-    sendUpdate(game);
+    });
 
-    await delay(10000);
+    yield delay(10000);
+
+    return game;
 }
 
-async function runRound(players) {
+
+export function* runGame() {
+    console.log('runGame');
+    let game = yield* lobby({});
+    for (let round = 0; round < ROUNDS; round++) {
+        game = yield* runRound(game);
+    }
+    game = endGame(game);
+    yield sendUpdate(game);
+}
+
+export function* runRound(game) {
     console.log('runRound');
-    assignPairs(players);
-    sendUpdate();
-    await assignCodenames(players);
-    sendUpdate();
-    await receivePasswords(players);
-    updateScores(players);
-    sendUpdate();
+
+    const pairs = assignPairs(game.players);
+    game = yield sendUpdate({
+        ...game,
+        phase: 'assignCodenames',
+        pairs
+    });
+
+    game = yield* assignCodenames(game);
+    game = setPasswords(game);
+    game = yield sendUpdate({
+        ...game,
+        phase: 'recvPasswords'
+    });
+    game = yield* receivePasswords(game);
+    game = updateScores(game);
+    game = yield sendUpdate({
+        ...game,
+    });
+    return game;
 }
 
 function assignPairs(players) {
 
 }
 
-async function assignCodenames() {
+function* assignCodenames() {
 
 }
 
-async function receivePasswords() {
+function setPasswords(game) {
+    
+}
+
+function* receivePasswords() {
 
 }
 
@@ -58,6 +77,8 @@ function updateScores(players) {
 function endGame() {
 
 }
+
+
 
 /**
  * Gets the next state update to send to a client.
@@ -75,19 +96,47 @@ export async function getStateUpdate(clientId, lastSeqNoSeen) {
     }
 }
 
+export async function runGameLoop(generator) {
+    let returnVal;
+
+    while(true) {
+        const { value, done } = generator.next(returnVal);
+
+        if ( done ) {
+            console.log('runGameLoop: done');
+            break;   
+        };
+
+        console.log('runGameLoop:', value);
+
+        switch ( value.type ) {
+            case 'delay':
+                await new Promise(resolve => setTimeout(resolve, value.t));
+                break;
+
+            case 'update':
+                _sendUpdate(value.state);
+                returnVal = value.state;
+                break;
+        }
+    }
+}
+
 (function loop() {
     nextStatePromise = new Promise(resolve => {
-        sendUpdate = game => {
+        _sendUpdate = game => {
             latestGameState = game;
+            ++seqNo;
+            console.log('sendUpdate:', seqNo);
             resolve();
         };
-    }).then(() => {
-        ++seqNo;
-        console.log('loop:', seqNo);
-        loop();
-    });
+    }).then(loop);
 })();
 
+function sendUpdate(state) {
+    return { type: 'update', state };
+}
+
 function delay(t) {
-    return new Promise(resolve => setTimeout(resolve, t));
+    return { type: 'delay', t };
 }
