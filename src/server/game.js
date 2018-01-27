@@ -87,6 +87,8 @@ export function* runRound(game) {
     game = yield sendUpdate({
         phase: ROUND_END_PHASE
     });
+    yield call(countdown(PHASE_DELAY));
+
     return game;
 }
 
