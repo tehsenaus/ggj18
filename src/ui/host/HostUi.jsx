@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
 import { values } from 'lodash';
-import {HOST_ID, LOBBY_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from '../../common/constants';
+import {HOST_ID, LOBBY_PHASE, YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from '../../common/constants';
 
 const clientId = HOST_ID;
 
@@ -37,7 +37,7 @@ export default class App extends Component {
     }
 
     render() {
-        const { phase, players } = this.state.game || {};
+        const { phase, players, round } = this.state.game || {};
 
         return (
             <div>
@@ -45,6 +45,11 @@ export default class App extends Component {
                     <h1>MISSION: TRANSMISSION</h1>
 
                     { phase === LOBBY_PHASE && <button className="btn btn-primary" onClick={this.startGame}>START GAME</button> }
+
+                    { phase === ROUND_END_PHASE && (<div>
+                        <h2>Get ready for round { round + 2 }!</h2>
+                    </div>)}
+
                     { phase === GAME_END_PHASE && (<div>
                         <h2>Game Over!</h2>
                         <button className="btn btn-primary" onClick={this.resetGame}>PLAY AGAIN</button>
@@ -53,10 +58,11 @@ export default class App extends Component {
 
                 { phase === LOBBY_PHASE && this.renderPlayerList(players) }
 
-                { phase === INPUT_PASSWORDS_PHASE && this.renderCountdown() }
+                { ([YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE].indexOf(phase) >= 0)
+                    && this.renderCountdown(phase) }
 
 
-                { (phase === ROUND_END_PHASE || phase === GAME_END_PHASE) && this.renderLeaderboard(players) }
+                { (phase === ROUND_END_PHASE || phase === GAME_END_PHASE) && this.renderLeaderboard(players, phase) }
 
                 <pre>
                     { JSON.stringify(this.state, null, 2) }
@@ -77,15 +83,27 @@ export default class App extends Component {
         </p>
     }
 
-    renderCountdown() {
+    renderCountdown(phase) {
         return (
-            <div>
-                <h2>Find your partner and exchange passwords! GO GO GO!!</h2>
+            <div className="text-center">
+                { phase === YOUR_CODENAME_PHASE && (<div>
+                    <h2>Look at your 'codename' - your partner will use this to identify you!</h2>
+                </div>)}
+
+                { phase === PARTNER_CODENAME_PHASE && (<div>
+                    <h2>Look at your partner's codename - get ready to find them!</h2>
+                </div>)}
+
+                { phase === INPUT_PASSWORDS_PHASE && (<div>
+                    <h2>Find your partner and exchange passwords! GO GO GO!!</h2>
+                </div>)}
+                
+                <h1 style={{ fontSize: '10em' }}>{ this.state.game.countdownTimeSecs } </h1>
             </div>
         )
     }
 
-    renderLeaderboard(players) {
+    renderLeaderboard(players, phase) {
         return (
             <table className="table table-striped leaderboard">
                 <thead>
@@ -97,8 +115,8 @@ export default class App extends Component {
                 </thead>
                 <tbody>
                     { values(players).map((player, i) => (
-                        <tr>
-                            <td>#{i+1}</td>
+                        <tr style={{ fontSize: i === 0 ? '2em' : '1em' }}>
+                            <td>{ i === 0 && phase === GAME_END_PHASE ? '🏆' : '#'+(i+1) }</td>
                             <td>{ player.name }</td>
                             <td>0</td>
                         </tr>
