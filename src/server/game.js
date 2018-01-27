@@ -54,24 +54,25 @@ export function* lobby() {
 export function* runGame() {
     yield* lobby();
     for (let round = 0; round < ROUNDS; round++) {
-        let game = yield sendUpdate({round});
-        game = yield* runRound(game);
-        console.log('End of round %d. Current game state: %o', round, game);
+        const game = yield sendUpdate({round});
+        yield* runRound(game);
     }
     yield sendUpdate({phase: GAME_END_PHASE});
 }
 
 export function* runRound(game) {
-    game = assignPairs(game);
-    game = assignCodenames(game);
-    game = assignPasswords(game);
+    yield sendUpdate({
+      ...assignPairs(game),
+      ...assignCodenames(game),
+      ...assignPasswords(game)
+    })
 
-    game = yield sendUpdate({
+    yield sendUpdate({
         phase: YOUR_CODENAME_PHASE
     });
     yield call(countdown(PHASE_DELAY));
 
-    game = yield sendUpdate({
+    yield sendUpdate({
         phase: PARTNER_CODENAME_PHASE
     });
     yield call(countdown(PHASE_DELAY));
@@ -88,8 +89,6 @@ export function* runRound(game) {
         phase: ROUND_END_PHASE
     });
     yield call(countdown(PHASE_DELAY));
-
-    return game;
 }
 
 function assignPairs(game) {
