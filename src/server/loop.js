@@ -1,5 +1,5 @@
 
-export async function runGameLoop(generator) {
+export function runGameLoop(generator) {
     let latestGameState = {};
     let seqNo = 0;
     let nextStatePromise = Promise.resolve({});
@@ -8,6 +8,8 @@ export async function runGameLoop(generator) {
     const inputCallbacks = {};
 
     const processValue = async value => {
+        console.log('processValue', value);
+
         switch ( value.type ) {
             case 'delay':
                 await new Promise(resolve => setTimeout(resolve, value.t));
@@ -23,15 +25,14 @@ export async function runGameLoop(generator) {
                 });
             
             case 'either':
-                Promise.race(
+                return await Promise.race(
                     value.options.map(processValue)
                 );
-                break;
 
             case 'call':
                 const res = value.fn();
                 if ( res && typeof res.next === 'function' ) {
-                    return await pump(generator);
+                    return await pump(res);
                 } else {
                     return await res;
                 }
@@ -39,7 +40,6 @@ export async function runGameLoop(generator) {
     }
 
     const pump = async (generator, sendValue) => {
-        let returnVal;
         const { value, done } = generator.next(sendValue);
 
         if ( done ) {
@@ -47,10 +47,9 @@ export async function runGameLoop(generator) {
             return sendValue;
         };
 
-        console.log('runGameLoop:', value);
-
-        returnVal = await processValue(value);
-        nextTick(() => pump(generator, returnVal));
+        const returnVal = await processValue(value);
+        
+        return await pump(generator, returnVal);
     };
 
     (function loop() {
@@ -64,7 +63,7 @@ export async function runGameLoop(generator) {
         }).then(loop);
     })();
 
-    pump(generator);
+    const promise = pump(generator);
 
     return {
         sendInput: (clientId, inputType, data) => {
@@ -73,6 +72,7 @@ export async function runGameLoop(generator) {
             }
         },
         getStateUpdate,
+        promise,
     }
 
     /**

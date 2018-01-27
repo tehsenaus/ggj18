@@ -2,7 +2,8 @@ import webpackDevMiddleware from 'webpack-dev-middleware';
 import webpackHotMiddleware from 'webpack-hot-middleware';
 import webpack from 'webpack';
 import express from 'express';
-import {runGameLoop, runGame, getStateUpdate} from './game';
+import {runGameLoop} from './loop';
+import {runGame} from './game';
 import webpackConfig from '../../webpack.client.config';
 
 const compiler = webpack(webpackConfig);
@@ -20,13 +21,17 @@ const {
     getStateUpdate
 } = runGameLoop(runGame());
 
+setTimeout(() => {
+    sendInput('testId', 'addPlayer', {
+        name: 'Alex'
+    })
+}, 5000);
+
 app.get('/state', async (req, res) => {
     res.json(await getStateUpdate(req.query.id, req.query.seq));
 });
 
 app.post('/player', (req, res) => {
-    const id = nextId++;
-
     const id = sendInput('addPlayer', {
         name: res.query.name
     });
