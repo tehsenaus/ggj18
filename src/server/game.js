@@ -141,10 +141,14 @@ function assignPasswords(game) {
   const players = _.values(game.players);
   const passwords = {};
   players.forEach(player => {
-    passwords[player.id] = randomWords();
+    passwords[player.id] = randomPin();
   });
 
   return {passwords};
+}
+
+function randomPin() {
+  return [0,0,0].map(() => Math.floor(Math.random() * 10).toString()[0]).join('');
 }
 
 function* receivePasswords(game) {
