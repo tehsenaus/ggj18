@@ -4,7 +4,10 @@ import {runGameLoop, runGame, getStateUpdate} from './game';
 
 const app = express();
 
-runGameLoop(runGame());
+const {
+    sendInput,
+    getStateUpdate
+} = runGameLoop(runGame());
 
 app.get('/state', async (req, res) => {
     res.json(await getStateUpdate(req.query.id, req.query.seq));
@@ -13,9 +16,9 @@ app.get('/state', async (req, res) => {
 app.post('/player', (req, res) => {
     const id = nextId++;
 
-    players[id] = {
+    const id = sendInput('addPlayer', {
         name: res.query.name
-    }
+    });
 
     res.json({
         id

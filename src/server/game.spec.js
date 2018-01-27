@@ -12,7 +12,11 @@ describe('game', () => {
                 state: { phase: 'lobby' }
             });
             expect( g.next().value ).toMatchObject({
-                type: 'delay'
+                type: 'either',
+                options: [
+                    { type: 'call' },
+                    { type: 'delay' }
+                ]
             });
         })
     })
