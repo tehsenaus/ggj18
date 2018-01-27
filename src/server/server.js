@@ -5,7 +5,7 @@ import express from 'express';
 import {runGameLoop} from './loop';
 import {runGame} from './game';
 import webpackConfig from '../../webpack.client.config';
-import {HOST_ID} from '../common/constants';
+import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
 
 const compiler = webpack(webpackConfig);
 const app = express();
@@ -23,7 +23,7 @@ const {
 } = runGameLoop(runGame());
 
 setTimeout(() => {
-    sendInput('id1', 'addPlayer', {
+    sendInput('id1', ADD_PLAYER_INPUT, {
         name: 'Alex'
     })
 }, 5000);
@@ -35,7 +35,7 @@ setTimeout(() => {
 }, 10000);
 
 setTimeout(() => {
-    sendInput('id3', 'addPlayer', {
+    sendInput('id3', ADD_PLAYER_INPUT, {
         name: 'Bob'
     })
 }, 15000);
@@ -45,7 +45,7 @@ app.get('/state', async (req, res) => {
 });
 
 app.post('/player', (req, res) => {
-    const id = sendInput(req.query.id,'addPlayer', {
+    const id = sendInput(req.query.id, ADD_PLAYER_INPUT, {
         name: req.query.name
     });
 
@@ -56,7 +56,7 @@ app.post('/player', (req, res) => {
 
 app.post('/game/start', (req, res) => {
     if ( req.query.id === HOST_ID ) {
-        sendInput(req.query.id, 'startGame', {});
+        sendInput(req.query.id, START_GAME_INPUT, {});
     }
 });
 

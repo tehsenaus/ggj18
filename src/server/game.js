@@ -1,20 +1,22 @@
 
 import { sendUpdate, delay, either, call, getInput } from './loop';
+import {INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE, LOBBY_PHASE, GUESS_PASSWORD_INPUT, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
 const shuffle = require('shuffle-array');
 const randomWords = require('random-words');
 const _ = require('lodash');
 
 const ROUNDS = 3;
 const MIN_NUM_PLAYERS = 3;
+const INPUT_PASSWORDS_TIMEOUT_MS = 10000;
 const CODE_NAMES = '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 😗 😙 😚 🙂 🤗 🤔 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 😬 😰 😱 😳 😵 😡 😠 😷 🤒 🤕 🤢 🤧 😇 🤠 🤡 🤥 🤓 😈 👿 👹 👺 💀 👻 👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾'.split(' ');
 
 export function* lobby(game) {
     game = yield sendUpdate({
         ...game,
-        phase: 'lobby'
+        scores: {},
+        players: {},
+        phase: LOBBY_PHASE
     });
-
-    console.log('lobby GAME', game);
 
     let players = {};
 
@@ -32,7 +34,7 @@ export function* lobby(game) {
     });
 
     function* startGame() {
-      yield getInput('startGame');
+      yield getInput(START_GAME_INPUT);
       const canStartGame = Object.keys(players).length >= MIN_NUM_PLAYERS;
       if (canStartGame) {
         gameStarted = true;
@@ -40,7 +42,7 @@ export function* lobby(game) {
     }
 
     function* getPlayer() {
-      const { clientId, data } = yield getInput('addPlayer');
+      const { clientId, data } = yield getInput(ADD_PLAYER_INPUT);
       players = {
           ...players,
           [clientId]: {
@@ -57,45 +59,30 @@ export function* lobby(game) {
 
 
 export function* runGame() {
-    console.log('runGame');
     let game = yield* lobby({});
     for (let round = 0; round < ROUNDS; round++) {
-        game = yield* runRound(game);
+        game = yield* runRound({...game, round});
         console.log('End of round %d. Current game state: %o', round, game);
     }
     game = endGame(game);
-    yield sendUpdate(game);
+    yield sendUpdate({...game, phase: GAME_END_PHASE});
 }
 
 export function* runRound(game) {
     game = assignPairs(game);
-    game = yield sendUpdate({
-        ...game,
-        phase: 'assignedPairs'
-    });
-
     game = assignCodenames(game);
-    game = yield sendUpdate({
-        ...game,
-        phase: 'assignedCodenames'
-    });
-
     game = assignPasswords(game);
-    game = yield sendUpdate({
-        ...game,
-        phase: 'assignedPasswords'
-    });
 
     game = yield sendUpdate({
         ...game,
-        phase: 'receivePasswords'
+        phase: INPUT_PASSWORDS_PHASE
     });
     game = yield* receivePasswords(game);
 
     game = updateScores(game);
     game = yield sendUpdate({
         ...game,
-        phase: 'endOfRound'
+        phase: ROUND_END_PHASE
     });
     return game;
 }
@@ -158,11 +145,20 @@ function assignPasswords(game) {
 }
 
 function* receivePasswords(game) {
-  game = {...game, guesses: {}};
+  game = {...game, guesses: {}, winningPair: undefined};
 
+  game = (yield either(
+      call(waitForWinningPair),
+      delay(INPUT_PASSWORDS_TIMEOUT_MS),
+  )) || game;
+
+  return game;
+}
+
+function* waitForWinningPair(game) {
   let winningPair;
   while (!winningPair) {
-    const { playerId, data } = yield getInput('guessPassword');
+    const { playerId, data } = yield getInput(GUESS_PASSWORD_INPUT);
     const pairDetails = game.playerPairMapping[playerId];
     const pairId = pairDetails.id;
     const otherPlayerId = pairDetails.otherPlayerId;
@@ -181,7 +177,10 @@ function* receivePasswords(game) {
       }
     };
 
-    const isWinningPair = game.guesses[playerId].correct && game.guesses[otherPlayerId].correct;
+    const player1Guess = game.guesses[playerId];
+    const player2Guess = game.guesses[otherPlayerId];
+
+    const isWinningPair = player1Guess && player1Guess.correct && player2Guess && player2Guess.correct;
     if (isWinningPair) {
       winningPair = pairId;
     }
@@ -194,11 +193,14 @@ function* receivePasswords(game) {
 }
 
 function updateScores(game) {
+  if (!game.winningPair) {
+    return game;
+  }
+
   const [player1, player2] = game.pairs[game.winningPair].pair;
-  const previousScores = game.scores || {};
 
   const scores = {
-    ...previousScores,
+    ...game.scores,
     [player1]: (previousScores[player1] || 0) + 1,
     [player2]: (previousScores[player2] || 0) + 1
   };
