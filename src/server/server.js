@@ -26,7 +26,7 @@ const {
 promise.catch(e => {
   console.error('ERROR IN GAME', e);
 });
-// 
+
 // setTimeout(() => {
 //     sendInput('id1', ADD_PLAYER_INPUT, {
 //         name: 'Alex'

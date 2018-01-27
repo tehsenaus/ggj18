@@ -115,7 +115,6 @@ export function runGameLoop(generator) {
                 game: latestGameState
             }
         } else {
-            console.log('returning state', latestGameState);
             const otherPlayerId = get(latestGameState, ['playerPairMapping', clientId, 'otherPlayerId']);
             return {
                 seqNo,
