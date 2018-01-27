@@ -10,15 +10,14 @@ const MIN_NUM_PLAYERS = 3;
 const INPUT_PASSWORDS_TIMEOUT_MS = 10000;
 const CODE_NAMES = '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 😗 😙 😚 🙂 🤗 🤔 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 😬 😰 😱 😳 😵 😡 😠 😷 🤒 🤕 🤢 🤧 😇 🤠 🤡 🤥 🤓 😈 👿 👹 👺 💀 👻 👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾'.split(' ');
 
-export function* lobby(game) {
-    game = yield sendUpdate({
-        ...game,
+export function* lobby() {
+    let players = {};
+
+    yield sendUpdate({
         scores: {},
-        players: {},
+        players: players,
         phase: LOBBY_PHASE
     });
-
-    let players = {};
 
     let gameStarted = false;
     while (!gameStarted) {
@@ -27,11 +26,7 @@ export function* lobby(game) {
           call(startGame),
       );
     }
-
-    return yield sendUpdate({
-        ...game,
-        players
-    });
+    return yield sendUpdate({players});
 
     function* startGame() {
       yield getInput(START_GAME_INPUT);
@@ -50,22 +45,20 @@ export function* lobby(game) {
               name: data.name
           }
       };
-      game = yield sendUpdate({
-          ...game,
-          players
-      });
+      yield sendUpdate({players});
     }
 }
 
 
 export function* runGame() {
-    let game = yield* lobby({});
+    yield* lobby();
     for (let round = 0; round < ROUNDS; round++) {
-        game = yield* runRound({...game, round});
+        let game = yield sendUpdate({round});
+        game = yield* runRound(game);
         console.log('End of round %d. Current game state: %o', round, game);
     }
     game = endGame(game);
-    yield sendUpdate({...game, phase: GAME_END_PHASE});
+    yield sendUpdate({phase: GAME_END_PHASE});
 }
 
 export function* runRound(game) {
@@ -74,14 +67,14 @@ export function* runRound(game) {
     game = assignPasswords(game);
 
     game = yield sendUpdate({
-        ...game,
         phase: INPUT_PASSWORDS_PHASE
     });
+
     game = yield* receivePasswords(game);
+    game = yield sendUpdate(game);
 
     game = updateScores(game);
     game = yield sendUpdate({
-        ...game,
         phase: ROUND_END_PHASE
     });
     return game;
@@ -118,7 +111,6 @@ function assignPairs(game) {
   });
 
   return {
-    ...game,
     pairs,
     playerPairMapping
   }
@@ -131,7 +123,7 @@ function assignCodenames(game) {
     codeNames[player.id] = shuffle.pick(CODE_NAMES);
   });
 
-  return {...game, codeNames};
+  return {codeNames};
 }
 
 function assignPasswords(game) {
@@ -141,21 +133,32 @@ function assignPasswords(game) {
     passwords[player.id] = randomWords();
   });
 
-  return {...game, passwords};
+  return {passwords};
 }
 
 function* receivePasswords(game) {
-  game = {...game, guesses: {}, winningPair: undefined};
-
-  game = (yield either(
+  yield either(
       call(waitForWinningPair),
-      delay(INPUT_PASSWORDS_TIMEOUT_MS),
-  )) || game;
+      call(passwordCountdown),
+  );
+}
 
-  return game;
+function* passwordCountdown(game) {
+  let timeout = INPUT_PASSWORDS_TIMEOUT_MS;
+  while (timeout > 0) {
+    yield sendUpdate({countdownTimeSecs: timeout/1000});
+    yield delay(1000);
+    timeout = timeout - 1000;
+  }
+
+  console.log('PASSWORD COUNTDOWN DONE');
+  return {countdownTimeSecs: 0};
 }
 
 function* waitForWinningPair(game) {
+  let guesses = {};
+  yield sendUpdate({guesses});
+
   let winningPair;
   while (!winningPair) {
     const { playerId, data } = yield getInput(GUESS_PASSWORD_INPUT);
@@ -166,19 +169,19 @@ function* waitForWinningPair(game) {
     const expectedPassword = game.passwords[otherPlayerId];
 
     const correct = data.password !== expectedPassword;
-    game = {
-      ...game,
-      guesses: {
-        ...game.guesses,
-        [playerId]: {
-          correct,
-          password: data.password
-        }
+
+    guesses = {
+      ...guesses,
+      [playerId]: {
+        correct,
+        password: data.password
       }
     };
 
-    const player1Guess = game.guesses[playerId];
-    const player2Guess = game.guesses[otherPlayerId];
+    yield sendUpdate({guesses});
+
+    const player1Guess = guesses[playerId];
+    const player2Guess = guesses[otherPlayerId];
 
     const isWinningPair = player1Guess && player1Guess.correct && player2Guess && player2Guess.correct;
     if (isWinningPair) {
@@ -186,10 +189,8 @@ function* waitForWinningPair(game) {
     }
   }
 
-  return {
-    ...game,
-    winningPair
-  };
+  console.log('WINNING PAIR FOUND');
+  return {guesses, winningPair};
 }
 
 function updateScores(game) {
@@ -206,7 +207,6 @@ function updateScores(game) {
   };
 
   return {
-    ...game,
     scores
   };
 }

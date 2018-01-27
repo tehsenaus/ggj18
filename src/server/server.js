@@ -19,26 +19,31 @@ app.use(webpackHotMiddleware(compiler));
 
 const {
     sendInput,
-    getStateUpdate
+    getStateUpdate,
+    promise
 } = runGameLoop(runGame());
+
+promise.catch(e => {
+  console.error('ERROR IN GAME', e);
+});
 
 setTimeout(() => {
     sendInput('id1', ADD_PLAYER_INPUT, {
         name: 'Alex'
     })
-}, 5000);
+}, 10);
 
 setTimeout(() => {
     sendInput('id2', 'addPlayer', {
         name: 'Katie'
     })
-}, 10000);
+}, 20);
 
 setTimeout(() => {
     sendInput('id3', ADD_PLAYER_INPUT, {
         name: 'Bob'
     })
-}, 15000);
+}, 30);
 
 app.get('/state', async (req, res) => {
     res.json(await getStateUpdate(req.query.id, req.query.seq));
