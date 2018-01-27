@@ -1,9 +1,11 @@
 import { h, Component } from 'preact';
 import guid from '../../common/guid'
+import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE} from "../../common/constants";
+import KeyPad from "../components/KeyPad";
 
 const USER_HASH_KEY = 'user_hash';
 
-export default class App extends Component {
+export default class PlayerUi extends Component {
 
     constructor(){
         super();
@@ -45,25 +47,43 @@ export default class App extends Component {
     };
 
     onInputAccepted(e) {
-        const username = this.input.value;
-        fetch("/player?id="+this.state.userHash+"&name="+username, {method: "POST"})
+        if(this.state.game.phase === LOBBY_PHASE) {
+            const username = this.input.value;
+            fetch("/player?id=" + this.state.userHash + "&name=" + username, {method: "POST"})
+        } else if(this.state.game.phase === INPUT_PASSWORDS_PHASE){
+            const passcode = this.input.value;
+            fetch("/password?id=" + this.state.userHash + "&passcode=" + passcode, {method: "POST"})
+        }
     };
 
     render() {
         if(!this.state.game){
             return <div> Loading UI...</div>;
         }
-        if(!this.state.game.name && this.state.game.phase ==='lobby'){
+        if(!this.state.game.name && this.state.game.phase === LOBBY_PHASE){
             return <div>
-                    { JSON.stringify(this.state) }
-                Please enter your name:<input type={"text"} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input><button onClick={(e) => this.onInputAccepted()}>Send</button>
-                </div>;
-        } else {
+                <h1>Please enter your name below</h1>
+                <br />
+                <input type={"text"} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input><button onClick={(e) => this.onInputAccepted()}>Send</button>
+                </div>
+        }
+        if(this.state.game.phase === LOBBY_PHASE) {
             return <div>
-                { JSON.stringify(this.state) }
                 You are in the lobby, wait until game starts.
             </div>;
         }
-
+        if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
+            return <div>
+                <h1>Now Find your partner and enter his secret PIN number:</h1>
+                <br />
+                <input type={"text"} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                <br />
+                <KeyPad
+                    onKeyNumPress={(key) => this.input.value += key}
+                    onDelete={() => this.input.value = this.input.value.slice(0,-1)}
+                    onAccept={() => this.onInputAccepted()}
+                />
+            </div>
+        }
     }
 }

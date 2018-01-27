@@ -59,6 +59,16 @@ app.post('/player', (req, res) => {
     });
 });
 
+app.post('/password', (req, res) => {
+    const id = sendInput(req.query.id, GUESS_PASSWORD_INPUT, {
+        password: req.query.passcode
+    });
+
+    res.json({
+        id
+    });
+});
+
 app.delete('/game', (req, res) => {
     if ( req.query.id === HOST_ID ) {
         sendInput(req.query.id, RESET_GAME_INPUT, {});
