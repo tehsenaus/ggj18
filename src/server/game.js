@@ -1,5 +1,5 @@
 
-import { sendUpdate, delay, either, call } from './loop';
+import { sendUpdate, delay, either, call, getInput } from './loop';
 
 const ROUNDS = 3;
 
@@ -8,6 +8,8 @@ export function* lobby(game) {
         ...game,
         phase: 'lobby'
     });
+
+    console.log('lobby GAME', game);
 
     let players = {};
 
@@ -26,7 +28,9 @@ export function* lobby(game) {
             const { clientId, data } = yield getInput('addPlayer');
             players = {
                 ...players,
-                name: data.name
+                [clientId]: {
+                    name: data.name
+                }
             };
         }
     }
