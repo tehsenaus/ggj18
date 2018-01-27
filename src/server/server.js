@@ -5,7 +5,7 @@ import express from 'express';
 import {runGameLoop} from './loop';
 import {runGame} from './game';
 import webpackConfig from '../../webpack.client.config';
-import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT} from '../common/constants';
+import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
 
 const compiler = webpack(webpackConfig);
 const app = express();
