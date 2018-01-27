@@ -51,6 +51,7 @@ export function* runGame() {
     let game = yield* lobby({});
     for (let round = 0; round < ROUNDS; round++) {
         game = yield* runRound(game);
+        console.log('End of round %d. Current game state: %o', round, game);
     }
     game = endGame(game);
     yield sendUpdate(game);
@@ -137,15 +138,14 @@ function setPasswords(game) {
   return {...game, passwords};
 }
 
-
-function* receivePasswords() {
-
+function* receivePasswords(game) {
+  return game;
 }
 
-function updateScores(players) {
-
+function updateScores(game) {
+  return game;
 }
 
-function endGame() {
-
+function endGame(game) {
+  return game;
 }
