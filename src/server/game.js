@@ -18,31 +18,40 @@ export function* lobby(game) {
 
     let players = {};
 
-    yield either(
-        call(getPlayer),
-        delay(300000000),
-    );
+    let gameStarted = false;
+    while (!gameStarted) {
+      yield either(
+          call(getPlayer),
+          call(startGame),
+      );
+    }
 
     return yield sendUpdate({
         ...game,
         players
     });
 
+    function* startGame() {
+      yield getInput('startGame');
+      const canStartGame = Object.keys(players).length >= MIN_NUM_PLAYERS;
+      if (canStartGame) {
+        gameStarted = true;
+      }
+    }
+
     function* getPlayer() {
-        while (Object.keys(players).length < MIN_NUM_PLAYERS) {
-            const { clientId, data } = yield getInput('addPlayer');
-            players = {
-                ...players,
-                [clientId]: {
-                    id: clientId,
-                    name: data.name
-                }
-            };
-            game = yield sendUpdate({
-                ...game,
-                players
-            });
-        }
+      const { clientId, data } = yield getInput('addPlayer');
+      players = {
+          ...players,
+          [clientId]: {
+              id: clientId,
+              name: data.name
+          }
+      };
+      game = yield sendUpdate({
+          ...game,
+          players
+      });
     }
 }
 
@@ -185,7 +194,19 @@ function* receivePasswords(game) {
 }
 
 function updateScores(game) {
-  return game;
+  const [player1, player2] = game.pairs[game.winningPair].pair;
+  const previousScores = game.scores || {};
+
+  const scores = {
+    ...previousScores,
+    [player1]: (previousScores[player1] || 0) + 1,
+    [player2]: (previousScores[player2] || 0) + 1
+  };
+
+  return {
+    ...game,
+    scores
+  };
 }
 
 function endGame(game) {

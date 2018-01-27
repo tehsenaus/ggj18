@@ -85,6 +85,7 @@ export function runGameLoop(generator) {
 
     return {
         sendInput: (clientId, inputType, data) => {
+            console.log('sendInput', clientId, inputType, data);
             if (inputCallbacks[inputType]) {
                 inputCallbacks[inputType]({ clientId, inputType, data });
             }

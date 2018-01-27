@@ -5,6 +5,7 @@ import express from 'express';
 import {runGameLoop} from './loop';
 import {runGame} from './game';
 import webpackConfig from '../../webpack.client.config';
+import {HOST_ID} from '../common/constants';
 
 const compiler = webpack(webpackConfig);
 const app = express();
@@ -51,6 +52,12 @@ app.post('/player', (req, res) => {
     res.json({
         id
     });
+});
+
+app.post('/game/start', (req, res) => {
+    if ( req.query.id === HOST_ID ) {
+        sendInput(req.query.id, 'startGame', {});
+    }
 });
 
 app.listen(process.env.PORT || 8080, () => {
