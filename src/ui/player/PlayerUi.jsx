@@ -5,6 +5,11 @@ import KeyPad from "../components/KeyPad";
 
 const USER_HASH_KEY = 'user_hash';
 
+const codenameStyle = {
+    display: 'block',
+    fontSize: '8em'
+}
+
 export default class PlayerUi extends Component {
 
     constructor(){
@@ -57,6 +62,12 @@ export default class PlayerUi extends Component {
     };
 
     render() {
+        return <div style={{ textAlign: 'center' }}>
+            { this.renderMain() }
+        </div>
+    }
+
+    renderMain() {
         if(!this.state.game){
             return <div> Loading UI...</div>;
         }
@@ -73,10 +84,10 @@ export default class PlayerUi extends Component {
             </div>;
         }
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
-            return <div>Your code name is: {this.state.game.selfCodename}</div>
+            return <div>Your code name is: <span style={codenameStyle}>{this.state.game.selfCodename}</span></div>
         }
         if(this.state.game.phase === PARTNER_CODENAME_PHASE ) {
-            return <div>Your partner code name is: {this.state.game.partnerCodename}</div>
+            return <div>Your partner code name is: <span style={codenameStyle}>{this.state.game.partnerCodename}</span></div>
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div>
