@@ -83,13 +83,13 @@ export default class PlayerUi extends Component {
                 <h1>Your secret PIN number: {this.state.game.selfPIN}</h1>
                 <h1>Now Find your partner and enter his secret PIN number:</h1>
                 <br />
-                <input type={"text"} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                <input type={"number"} min={100} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 <br />
-                <KeyPad
+                {<KeyPad
                     onKeyNumPress={(key) => this.input.value += key}
                     onDelete={() => this.input.value = this.input.value.slice(0,-1)}
                     onAccept={() => this.onInputAccepted()}
-                />
+                />}
             </div>
         }
     }
