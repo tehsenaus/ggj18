@@ -27,11 +27,11 @@ setTimeout(() => {
     })
 }, 5000);
 
-setTimeout(() => {
+/*setTimeout(() => {
     sendInput('id2', 'addPlayer', {
         name: 'Katie'
     })
-}, 10000);
+}, 10000);*/
 
 setTimeout(() => {
     sendInput('id3', 'addPlayer', {

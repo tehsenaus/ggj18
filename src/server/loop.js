@@ -103,9 +103,21 @@ export function runGameLoop(generator) {
             await nextStatePromise;
         }
 
-        return {
-            seqNo,
-            game: latestGameState
+        const isHost = false
+
+        if(isHost){
+            return {
+                seqNo,
+                game: latestGameState
+            }
+        } else {
+            return {
+                seqNo,
+                game: {
+                    phase : latestGameState.phase,
+                    state : latestGameState.players[clientId]
+                }
+            }
         }
     }
 }
