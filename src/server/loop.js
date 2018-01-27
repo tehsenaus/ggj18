@@ -115,11 +115,15 @@ export function runGameLoop(generator) {
             }
         } else {
             console.log('returning state', latestGameState);
+            const otherPlayerId = latestGameState.playerPairMapping && latestGameState.playerPairMapping[clientId].otherPlayerId;
             return {
                 seqNo,
                 game: {
                     phase : latestGameState.phase,
-                    ...latestGameState.players[clientId]
+                    ...latestGameState.players[clientId],
+                    selfCodename: latestGameState.codeNames && latestGameState.codeNames[clientId],
+                    partnerCodename: latestGameState.codeNames && latestGameState.codeNames[otherPlayerId],
+                    selfPIN: latestGameState.passwords && latestGameState.passwords[clientId]
                 }
             }
         }

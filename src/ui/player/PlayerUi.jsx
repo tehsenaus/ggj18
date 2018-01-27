@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
 import guid from '../../common/guid'
-import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE} from "../../common/constants";
+import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
 
 const USER_HASH_KEY = 'user_hash';
@@ -72,8 +72,15 @@ export default class PlayerUi extends Component {
                 You are in the lobby, wait until game starts.
             </div>;
         }
+        if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
+            return <div>Your code name is: {this.state.game.selfCodename}</div>
+        }
+        if(this.state.game.phase === PARTNER_CODENAME_PHASE ) {
+            return <div>Your partner code name is: {this.state.game.partnerCodename}</div>
+        }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div>
+                <h1>Your secret PIN number: {this.state.game.selfPIN}</h1>
                 <h1>Now Find your partner and enter his secret PIN number:</h1>
                 <br />
                 <input type={"text"} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
