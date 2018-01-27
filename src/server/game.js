@@ -1,6 +1,6 @@
 
 import { sendUpdate, delay, either, call, getInput } from './loop';
-import {INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE, LOBBY_PHASE, GUESS_PASSWORD_INPUT, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
+import {YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE, LOBBY_PHASE, GUESS_PASSWORD_INPUT, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
 const shuffle = require('shuffle-array');
 const randomWords = require('random-words');
 const _ = require('lodash');
@@ -8,6 +8,7 @@ const _ = require('lodash');
 const ROUNDS = 3;
 const MIN_NUM_PLAYERS = 3;
 const INPUT_PASSWORDS_TIMEOUT_MS = 10000;
+const PHASE_DELAY = 5000;
 const CODE_NAMES = '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 😗 😙 😚 🙂 🤗 🤔 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 😬 😰 😱 😳 😵 😡 😠 😷 🤒 🤕 🤢 🤧 😇 🤠 🤡 🤥 🤓 😈 👿 👹 👺 💀 👻 👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾'.split(' ');
 
 export function* lobby() {
@@ -57,7 +58,6 @@ export function* runGame() {
         game = yield* runRound(game);
         console.log('End of round %d. Current game state: %o', round, game);
     }
-    game = endGame(game);
     yield sendUpdate({phase: GAME_END_PHASE});
 }
 
@@ -65,6 +65,16 @@ export function* runRound(game) {
     game = assignPairs(game);
     game = assignCodenames(game);
     game = assignPasswords(game);
+
+    game = yield sendUpdate({
+        phase: YOUR_CODENAME_PHASE
+    });
+    yield call(countdown(PHASE_DELAY));
+
+    game = yield sendUpdate({
+        phase: PARTNER_CODENAME_PHASE
+    });
+    yield call(countdown(PHASE_DELAY));
 
     game = yield sendUpdate({
         phase: INPUT_PASSWORDS_PHASE
@@ -139,20 +149,21 @@ function assignPasswords(game) {
 function* receivePasswords(game) {
   yield either(
       call(waitForWinningPair),
-      call(passwordCountdown),
+      call(countdown(INPUT_PASSWORDS_TIMEOUT_MS)),
   );
 }
 
-function* passwordCountdown(game) {
-  let timeout = INPUT_PASSWORDS_TIMEOUT_MS;
-  while (timeout > 0) {
-    yield sendUpdate({countdownTimeSecs: timeout/1000});
-    yield delay(1000);
-    timeout = timeout - 1000;
-  }
+function countdown(timeout) {
+  return function* (game) {
+    while (timeout > 0) {
+      yield sendUpdate({countdownTimeSecs: timeout/1000});
+      yield delay(1000);
+      timeout = timeout - 1000;
+    }
 
-  console.log('PASSWORD COUNTDOWN DONE');
-  return {countdownTimeSecs: 0};
+    console.log('PASSWORD COUNTDOWN DONE');
+    return {countdownTimeSecs: 0};
+  }
 }
 
 function* waitForWinningPair(game) {
@@ -209,8 +220,4 @@ function updateScores(game) {
   return {
     scores
   };
-}
-
-function endGame(game) {
-  return game;
 }
