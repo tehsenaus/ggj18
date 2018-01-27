@@ -15,7 +15,7 @@ export function runGameLoop(generator) {
 
         switch ( value.type ) {
             case 'delay':
-                await new Promise(resolve => setTimeout(resolve, value.t));
+                await delayPromise(value.t);
                 break;
 
             case 'update':
@@ -104,7 +104,7 @@ export function runGameLoop(generator) {
      */
     async function getStateUpdate(clientId, lastSeqNoSeen) {
         if ( lastSeqNoSeen == seqNo ) {
-            await nextStatePromise;
+            await Promise.race([ nextStatePromise, delayPromise(15000) ]);
         }
 
         const isHost = clientId === HOST_ID;
@@ -148,4 +148,8 @@ export function either(...options) {
 
 export function call(fn) {
     return { type: 'call', fn };
+}
+
+export function delayPromise(t) {
+    return new Promise(resolve => setTimeout(resolve, t));
 }
