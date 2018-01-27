@@ -26,24 +26,24 @@ const {
 promise.catch(e => {
   console.error('ERROR IN GAME', e);
 });
-
-setTimeout(() => {
-    sendInput('id1', ADD_PLAYER_INPUT, {
-        name: 'Alex'
-    })
-}, 10);
-
-setTimeout(() => {
-    sendInput('id2', 'addPlayer', {
-        name: 'Katie'
-    })
-}, 20);
-
-setTimeout(() => {
-    sendInput('id3', ADD_PLAYER_INPUT, {
-        name: 'Bob'
-    })
-}, 30);
+// 
+// setTimeout(() => {
+//     sendInput('id1', ADD_PLAYER_INPUT, {
+//         name: 'Alex'
+//     })
+// }, 10);
+//
+// setTimeout(() => {
+//     sendInput('id2', 'addPlayer', {
+//         name: 'Katie'
+//     })
+// }, 20);
+//
+// setTimeout(() => {
+//     sendInput('id3', ADD_PLAYER_INPUT, {
+//         name: 'Bob'
+//     })
+// }, 30);
 
 app.get('/state', async (req, res) => {
     res.json(await getStateUpdate(req.query.id, req.query.seq));
