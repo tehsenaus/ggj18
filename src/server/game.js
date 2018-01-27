@@ -1,15 +1,14 @@
 
 import { sendUpdate, delay, either, call, getInput } from './loop';
-import {RESET_GAME_INPUT, YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE, LOBBY_PHASE, GUESS_PASSWORD_INPUT, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
+import {CODE_NAMES, RESET_GAME_INPUT, YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE, LOBBY_PHASE, GUESS_PASSWORD_INPUT, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
 const shuffle = require('shuffle-array');
 const randomWords = require('random-words');
 const _ = require('lodash');
 
 const ROUNDS = 3;
-const MIN_NUM_PLAYERS = 3;
+const MIN_NUM_PLAYERS = 2;
 const INPUT_PASSWORDS_TIMEOUT_MS = 30000;
 const PHASE_DELAY = 5000;
-const CODE_NAMES = '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 😗 😙 😚 🙂 🤗 🤔 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 😬 😰 😱 😳 😵 😡 😠 😷 🤒 🤕 🤢 🤧 😇 🤠 🤡 🤥 🤓 😈 👿 👹 👺 💀 👻 👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾'.split(' ');
 
 export function* lobby() {
     let players = {};
@@ -76,13 +75,12 @@ export function* runRound(game) {
     yield sendUpdate({phase: PARTNER_CODENAME_PHASE});
     yield* countdown(PHASE_DELAY);
 
-    game = yield sendUpdate({phase: INPUT_PASSWORDS_PHASE});
+    yield sendUpdate({phase: INPUT_PASSWORDS_PHASE});
 
-    game = yield* receivePasswords(game);
-    game = yield sendUpdate(game);
+    yield* receivePasswords();
 
-    game = updateScores(game);
     game = yield sendUpdate({phase: ROUND_END_PHASE});
+    game = yield* updateScores(game);
 
     yield* countdown(PHASE_DELAY);
 }
@@ -104,7 +102,7 @@ function assignPairs(game) {
       return;
     }
 
-    const id = Object.keys(pairs).length;
+    const id = `id${Object.keys(pairs).length}`;
 
     pairs[id] = {id, pair};
     playerPairMapping[player1.id] = {
@@ -147,8 +145,8 @@ function randomPin() {
   return [0,0,0].map(() => Math.floor(Math.random() * 10).toString()[0]).join('');
 }
 
-function* receivePasswords(game) {
-  yield either(
+function* receivePasswords() {
+  return yield either(
       call(waitForWinningPair),
       call(() => countdown(INPUT_PASSWORDS_TIMEOUT_MS)),
   );
@@ -160,15 +158,15 @@ function* countdown(timeout) {
     yield delay(1000);
     timeout = timeout - 1000;
   }
-
-  return {countdownTimeSecs: 0};
+  yield sendUpdate({countdownTimeSecs: 0});
 }
 
 function* waitForWinningPair() {
   let guesses = {};
-  let {playerPairMapping, passwords} = yield sendUpdate({guesses});
-
   let winningPair;
+
+  let {playerPairMapping, passwords} = yield sendUpdate({guesses, winningPair});
+
   while (!winningPair) {
     const { clientId, data } = yield getInput(GUESS_PASSWORD_INPUT);
     const playerId = clientId;
@@ -195,28 +193,27 @@ function* waitForWinningPair() {
 
     const isWinningPair = player1Guess && player1Guess.correct && player2Guess && player2Guess.correct;
     if (isWinningPair) {
+      console.log('WINNING PAIR FOUND: ', pairId);
       winningPair = pairId;
     }
   }
 
-  console.log('WINNING PAIR FOUND');
-  return {guesses, winningPair};
+  yield sendUpdate({guesses, winningPair});
 }
 
-function updateScores(game) {
+function* updateScores(game) {
   if (!game.winningPair) {
     return game;
   }
 
   const [player1, player2] = game.pairs[game.winningPair].pair;
 
+  const previousScores = game.scores;
   const scores = {
-    ...game.scores,
-    [player1]: (previousScores[player1] || 0) + 1,
-    [player2]: (previousScores[player2] || 0) + 1
+    ...previousScores,
+    [player1.id]: (previousScores[player1.id] || 0) + 1,
+    [player2.id]: (previousScores[player2.id] || 0) + 1
   };
 
-  return {
-    scores
-  };
+  return yield sendUpdate({scores});
 }

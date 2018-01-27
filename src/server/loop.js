@@ -1,5 +1,6 @@
 
 import {HOST_ID} from "../common/constants";
+import {get} from "lodash";
 
 export function runGameLoop(generator) {
     let latestGameState = {};
@@ -114,16 +115,15 @@ export function runGameLoop(generator) {
                 game: latestGameState
             }
         } else {
-            console.log('returning state', latestGameState);
-            const otherPlayerId = latestGameState.playerPairMapping && latestGameState.playerPairMapping[clientId].otherPlayerId;
+            const otherPlayerId = get(latestGameState, ['playerPairMapping', clientId, 'otherPlayerId']);
             return {
                 seqNo,
                 game: {
                     phase : latestGameState.phase,
-                    ...latestGameState.players[clientId],
-                    selfCodename: latestGameState.codeNames && latestGameState.codeNames[clientId],
-                    partnerCodename: latestGameState.codeNames && latestGameState.codeNames[otherPlayerId],
-                    selfPIN: latestGameState.passwords && latestGameState.passwords[clientId]
+                    ...get(latestGameState, ['players', clientId], {}),
+                    selfCodename: get(latestGameState, ['codeNames', clientId]),
+                    partnerCodename: get(latestGameState, ['codeNames', otherPlayerId]),
+                    selfPIN: get(latestGameState, ['passwords', clientId])
                 }
             }
         }

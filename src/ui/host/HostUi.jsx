@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
-import { values } from 'lodash';
-import {HOST_ID, LOBBY_PHASE, YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from '../../common/constants';
+import { values, get, sortBy } from 'lodash';
+import { GAME_TITLE, HOST_ID, LOBBY_PHASE, YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from '../../common/constants';
 
 const clientId = HOST_ID;
 
@@ -48,9 +48,12 @@ export default class App extends Component {
         return (
             <div>
                 <p className="text-center">
-                    <h1>MISSION: TRANSMISSION</h1>
+                    <h1>{ GAME_TITLE }</h1>
 
-                    { phase === LOBBY_PHASE && <button className="btn btn-primary" onClick={this.startGame}>START GAME</button> }
+                    { phase === LOBBY_PHASE && <div>
+                        <h5>Find your secret partner by their codeface, and <em>transmit</em> your secret PIN!</h5>
+                        <button className="btn btn-primary" onClick={this.startGame}>START GAME</button>
+                    </div>}
 
                     { phase === ROUND_END_PHASE && (<div>
                         <h2>Get ready for round { round + 2 }!</h2>
@@ -81,6 +84,7 @@ export default class App extends Component {
         players = values(players);
 
         return <p className='text-center'>
+
             <h2>{ players.length } player(s) joined:</h2>
 
             { players.map(player => (
@@ -110,6 +114,9 @@ export default class App extends Component {
     }
 
     renderLeaderboard(players, phase) {
+        const scores = get(this.state, ['game', 'scores'], {});
+        players = sortBy(players, (p) => -(scores[p.id] || 0));
+
         return (
             <table className="table table-striped leaderboard">
                 <thead>
@@ -124,7 +131,7 @@ export default class App extends Component {
                         <tr style={{ fontSize: i === 0 ? '2em' : '1em' }}>
                             <td>{ i === 0 && phase === GAME_END_PHASE ? '🏆' : '#'+(i+1) }</td>
                             <td>{ player.name }</td>
-                            <td>0</td>
+                            <td>{ scores[player.id] || 0 }</td>
                         </tr>
                     )) }
                 </tbody>
