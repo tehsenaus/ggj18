@@ -5,6 +5,12 @@ import {HOST_ID, LOBBY_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_P
 const clientId = HOST_ID;
 
 export default class App extends Component {
+    resetGame = () => {
+        return fetch('/game?id=' + clientId, {
+            method: 'DELETE',
+        });
+    }
+
     startGame = () => {
         return fetch('/game/start?id=' + clientId, {
             method: 'POST',
@@ -39,11 +45,16 @@ export default class App extends Component {
                     <h1>MISSION: TRANSMISSION</h1>
 
                     { phase === LOBBY_PHASE && <button className="btn btn-primary" onClick={this.startGame}>START GAME</button> }
+                    { phase === GAME_END_PHASE && (<div>
+                        <h2>Game Over!</h2>
+                        <button className="btn btn-primary" onClick={this.resetGame}>PLAY AGAIN</button>
+                    </div>)}
                 </p>
 
                 { phase === LOBBY_PHASE && this.renderPlayerList(players) }
 
                 { phase === INPUT_PASSWORDS_PHASE && this.renderCountdown() }
+
 
                 { (phase === ROUND_END_PHASE || phase === GAME_END_PHASE) && this.renderLeaderboard(players) }
 
@@ -61,7 +72,7 @@ export default class App extends Component {
             <h2>{ players.length } player(s) joined:</h2>
 
             { players.map(player => (
-                <span>{ player.name }</span>
+                <span className="badge badge-pill badge-secondary" style={{ fontSize: '1.5em', marginRight: '0.5em' }}>{ player.name }</span>
             )) }
         </p>
     }

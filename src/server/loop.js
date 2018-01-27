@@ -18,14 +18,13 @@ export function runGameLoop(generator) {
                 break;
 
             case 'update':
-                _sendUpdate(value.state);
-                return value.state;
-            
+                return _sendUpdate(value.state);
+
             case 'getInput':
                 return await new Promise(resolve => {
                     inputCallbacks[value.inputType] = resolve;
                 });
-            
+
             case 'either': {
                 let done = false;
                 const eitherContext = {
@@ -49,9 +48,9 @@ export function runGameLoop(generator) {
                 } else {
                     return await res;
                 }
-            
+
             default:
-                return value;
+                throw new Error('invalid yield value: ' + value);
         }
     }
 
@@ -74,11 +73,12 @@ export function runGameLoop(generator) {
 
     (function loop() {
         nextStatePromise = new Promise(resolve => {
-            _sendUpdate = game => {
-                latestGameState = game;
+            _sendUpdate = update => {
+                latestGameState = {...latestGameState, ...update};
                 ++seqNo;
                 console.log('sendUpdate:', seqNo);
                 resolve();
+                return latestGameState;
             };
         }).then(loop);
     })();
@@ -98,7 +98,7 @@ export function runGameLoop(generator) {
 
     /**
      * Gets the next state update to send to a client.
-     * 
+     *
      * If the client is already up to date, waits for a state change before resolving.
      */
     async function getStateUpdate(clientId, lastSeqNoSeen) {

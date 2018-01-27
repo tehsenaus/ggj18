@@ -7,6 +7,16 @@ export const HOST_ID = 'HOST';
 export const LOBBY_PHASE = 'lobby';
 
 /**
+ * Player's own codename is revealed.
+ */
+export const YOUR_CODENAME_PHASE = 'yourCodename';
+
+/**
+ * Partner's codename is revealed.
+ */
+export const PARTNER_CODENAME_PHASE = 'partnerCodename';
+
+/**
  * Main gameplay phase - players have to find their partner and
  * exchange passwords.
  */
@@ -34,6 +44,11 @@ export const GUESS_PASSWORD_INPUT = 'guessPassword';
 export const ADD_PLAYER_INPUT = 'addPlayer';
 
 /**
- * Start new game.
+ * Start the game - once enough players have joined
  */
 export const START_GAME_INPUT = 'startGame';
+
+/**
+ * After game end, reset all scores and return to the lobby (keep players).
+ */
+export const RESET_GAME_INPUT = 'resetGame';
