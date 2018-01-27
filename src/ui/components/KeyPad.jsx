@@ -1,8 +1,8 @@
 import { h, Component } from 'preact';
 
 const cellStyle = {
-    border: '1px solid black',
-    padding: '50px'
+    userSelect: 'none',
+    width: '33%'
 };
 
 export default class KeyPad extends Component {
@@ -31,8 +31,8 @@ export default class KeyPad extends Component {
     }
 
     render(){
-        return <table>
-            {this.state.rows.map(row => <tr>{row.map(cell => <td style={cellStyle} onClick={() => this.onCellSelected(cell)}>{cell}</td>)}</tr>)}
+        return <table style={{width: '100%'}}>
+            {this.state.rows.map(row => <tr>{row.map(cell => <td style={cellStyle}><button className="btn btn-primary" style={{width: '100%', height:'80px'}} onClick={() => this.onCellSelected(cell)}>{cell}</button></td>)}</tr>)}
         </table>
     }
 }
