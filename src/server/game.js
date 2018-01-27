@@ -1,6 +1,6 @@
 
 import { sendUpdate, delay, either, call, getInput } from './loop';
-import {YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE, LOBBY_PHASE, GUESS_PASSWORD_INPUT, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
+import {RESET_GAME_INPUT, YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE, LOBBY_PHASE, GUESS_PASSWORD_INPUT, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
 const shuffle = require('shuffle-array');
 const randomWords = require('random-words');
 const _ = require('lodash');
@@ -52,12 +52,15 @@ export function* lobby() {
 
 
 export function* runGame() {
+  while (true) {
     yield* lobby();
     for (let round = 0; round < ROUNDS; round++) {
         const game = yield sendUpdate({round});
         yield* runRound(game);
     }
     yield sendUpdate({phase: GAME_END_PHASE});
+    yield getInput(RESET_GAME_INPUT);
+  }
 }
 
 export function* runRound(game) {
