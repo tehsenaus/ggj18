@@ -5,7 +5,8 @@ const randomWords = require('random-words');
 const _ = require('lodash');
 
 const ROUNDS = 3;
-const CODE_NAMES = ['PIG', 'CHICKEN', 'COW'];
+const MIN_NUM_PLAYERS = 3;
+const CODE_NAMES = ['🎅', '👩', '😿'];
 
 export function* lobby(game) {
     game = yield sendUpdate({
@@ -18,8 +19,8 @@ export function* lobby(game) {
     let players = {};
 
     yield either(
-        call(getPlayers),
-        delay(10000),
+        call(getPlayer),
+        delay(300000000),
     );
 
     return yield sendUpdate({
@@ -27,8 +28,8 @@ export function* lobby(game) {
         players
     });
 
-    function* getPlayers() {
-        while ( true ) {
+    function* getPlayer() {
+        while (Object.keys(players).length < MIN_NUM_PLAYERS) {
             const { clientId, data } = yield getInput('addPlayer');
             players = {
                 ...players,
@@ -58,34 +59,43 @@ export function* runGame() {
 }
 
 export function* runRound(game) {
-    console.log('runRound');
-
     game = assignPairs(game);
     game = yield sendUpdate({
         ...game,
-        phase: 'assignCodenames'
+        phase: 'assignedPairs'
     });
 
     game = assignCodenames(game);
-    game = setPasswords(game);
     game = yield sendUpdate({
         ...game,
-        phase: 'recvPasswords'
+        phase: 'assignedCodenames'
+    });
+
+    game = assignPasswords(game);
+    game = yield sendUpdate({
+        ...game,
+        phase: 'assignedPasswords'
+    });
+
+    game = yield sendUpdate({
+        ...game,
+        phase: 'receivePasswords'
     });
     game = yield* receivePasswords(game);
+
     game = updateScores(game);
     game = yield sendUpdate({
         ...game,
+        phase: 'endOfRound'
     });
     return game;
 }
 
 function assignPairs(game) {
-  console.log('Assigning pairs...');
   const players = _.values(game.players);
 
-  const pairs = {}; // Holds pairId -> a pair of playerIds
-  const playerPairMapping = {}; // Holds playerId -> playerId
+  const pairs = {}; // Holds pairId -> pair details
+  const playerPairMapping = {}; // Holds playerId -> pair details
 
   const shuffledPlayers = shuffle(players, {copy: true});
   const pairedPlayers = _.chunk(shuffledPlayers, 2);
@@ -99,12 +109,18 @@ function assignPairs(game) {
     }
 
     const id = Object.keys(pairs).length;
+
     pairs[id] = {id, pair};
-    playerPairMapping[player1.id] = player2.id;
-    playerPairMapping[player2.id] = player1.id;
+    playerPairMapping[player1.id] = {
+      id,
+      otherPlayerId: player2.id
+    };
+    playerPairMapping[player2.id] = {
+      id,
+      otherPlayerId: player1.id
+    };
   });
 
-  console.log('Assigned pairs:', pairedPlayers);
   return {
     ...game,
     pairs,
@@ -113,33 +129,59 @@ function assignPairs(game) {
 }
 
 function assignCodenames(game) {
-  console.log('Assigning codenames...');
-
   const players = _.values(game.players);
   const codeNames = {};
   players.forEach(player => {
     codeNames[player.id] = shuffle.pick(CODE_NAMES);
   });
 
-  console.log('Assigned codenames:', codeNames);
   return {...game, codeNames};
 }
 
-function setPasswords(game) {
-  console.log('Assigning passwords...');
-
+function assignPasswords(game) {
   const players = _.values(game.players);
   const passwords = {};
   players.forEach(player => {
     passwords[player.id] = randomWords();
   });
 
-  console.log('Assigned passwords:', passwords);
   return {...game, passwords};
 }
 
 function* receivePasswords(game) {
-  return game;
+  game = {...game, guesses: {}};
+
+  let winningPair;
+  while (!winningPair) {
+    const { playerId, data } = yield getInput('guessPassword');
+    const pairDetails = game.playerPairMapping[playerId];
+    const pairId = pairDetails.id;
+    const otherPlayerId = pairDetails.otherPlayerId;
+
+    const expectedPassword = game.passwords[otherPlayerId];
+
+    const correct = data.password !== expectedPassword;
+    game = {
+      ...game,
+      guesses: {
+        ...game.guesses,
+        [playerId]: {
+          correct,
+          password: data.password
+        }
+      }
+    };
+
+    const isWinningPair = game.guesses[playerId].correct && game.guesses[otherPlayerId].correct;
+    if (isWinningPair) {
+      winningPair = pairId;
+    }
+  }
+
+  return {
+    ...game,
+    winningPair
+  };
 }
 
 function updateScores(game) {

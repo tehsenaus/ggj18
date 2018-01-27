@@ -22,10 +22,22 @@ const {
 } = runGameLoop(runGame());
 
 setTimeout(() => {
-    sendInput('testId', 'addPlayer', {
+    sendInput('id1', 'addPlayer', {
         name: 'Alex'
     })
 }, 5000);
+
+setTimeout(() => {
+    sendInput('id2', 'addPlayer', {
+        name: 'Katie'
+    })
+}, 10000);
+
+setTimeout(() => {
+    sendInput('id3', 'addPlayer', {
+        name: 'Bob'
+    })
+}, 15000);
 
 app.get('/state', async (req, res) => {
     res.json(await getStateUpdate(req.query.id, req.query.seq));
