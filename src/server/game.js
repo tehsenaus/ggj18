@@ -161,7 +161,6 @@ function* countdown(timeout) {
     timeout = timeout - 1000;
   }
 
-  console.log('PASSWORD COUNTDOWN DONE');
   return {countdownTimeSecs: 0};
 }
 
@@ -171,14 +170,15 @@ function* waitForWinningPair() {
 
   let winningPair;
   while (!winningPair) {
-    const { playerId, data } = yield getInput(GUESS_PASSWORD_INPUT);
+    const { clientId, data } = yield getInput(GUESS_PASSWORD_INPUT);
+    const playerId = clientId;
     const pairDetails = playerPairMapping[playerId];
     const pairId = pairDetails.id;
     const otherPlayerId = pairDetails.otherPlayerId;
 
     const expectedPassword = passwords[otherPlayerId];
 
-    const correct = data.password !== expectedPassword;
+    const correct = data.password === expectedPassword;
 
     guesses = {
       ...guesses,
