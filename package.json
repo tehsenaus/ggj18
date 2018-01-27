@@ -18,7 +18,9 @@
   "homepage": "https://github.com/tehsenaus/ggj18#readme",
   "dependencies": {
     "express": "^4.16.2",
-    "preact": "^8.2.7"
+    "preact": "^8.2.7",
+    "random-words": "0.0.1",
+    "shuffle-array": "^1.0.1"
   },
   "devDependencies": {
     "babel": "^6.23.0",
