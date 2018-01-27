@@ -46,7 +46,8 @@ app.get('/state', async (req, res) => {
 
 app.post('/player', (req, res) => {
     const id = sendInput('addPlayer', {
-        name: res.query.name
+        id: req.query.id,
+        name: req.query.name
     });
 
     res.json({

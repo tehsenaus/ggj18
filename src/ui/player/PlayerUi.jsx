@@ -21,7 +21,10 @@ export default class App extends Component {
             const res = await fetch('/state?id='+userHash+'&seq=' + this.state.seqNo);
             const json = await res.json();
 
-            this.setState(json);
+            this.setState({
+                ...json,
+                userHash,
+            });
         };
 
         loop();
@@ -37,7 +40,7 @@ export default class App extends Component {
 
     onInputAccepted(e) {
         const username = this.input.value;
-        fetch("/player?name="+username, {method: "POST"})
+        fetch("/player?id="+this.state.userHash+"&name="+username, {method: "POST"})
     };
 
     render() {
