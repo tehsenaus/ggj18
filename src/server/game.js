@@ -67,28 +67,21 @@ export function* runRound(game) {
       ...assignPasswords(game)
     })
 
-    yield sendUpdate({
-        phase: YOUR_CODENAME_PHASE
-    });
-    yield call(countdown(PHASE_DELAY));
+    yield sendUpdate({phase: YOUR_CODENAME_PHASE});
+    yield* countdown(PHASE_DELAY);
 
-    yield sendUpdate({
-        phase: PARTNER_CODENAME_PHASE
-    });
-    yield call(countdown(PHASE_DELAY));
+    yield sendUpdate({phase: PARTNER_CODENAME_PHASE});
+    yield* countdown(PHASE_DELAY);
 
-    game = yield sendUpdate({
-        phase: INPUT_PASSWORDS_PHASE
-    });
+    game = yield sendUpdate({phase: INPUT_PASSWORDS_PHASE});
 
     game = yield* receivePasswords(game);
     game = yield sendUpdate(game);
 
     game = updateScores(game);
-    game = yield sendUpdate({
-        phase: ROUND_END_PHASE
-    });
-    yield call(countdown(PHASE_DELAY));
+    game = yield sendUpdate({phase: ROUND_END_PHASE});
+
+    yield* countdown(PHASE_DELAY);
 }
 
 function assignPairs(game) {
@@ -150,35 +143,33 @@ function assignPasswords(game) {
 function* receivePasswords(game) {
   yield either(
       call(waitForWinningPair),
-      call(countdown(INPUT_PASSWORDS_TIMEOUT_MS)),
+      call(() => countdown(INPUT_PASSWORDS_TIMEOUT_MS)),
   );
 }
 
-function countdown(timeout) {
-  return function* (game) {
-    while (timeout > 0) {
-      yield sendUpdate({countdownTimeSecs: timeout/1000});
-      yield delay(1000);
-      timeout = timeout - 1000;
-    }
-
-    console.log('PASSWORD COUNTDOWN DONE');
-    return {countdownTimeSecs: 0};
+function* countdown(timeout) {
+  while (timeout > 0) {
+    yield sendUpdate({countdownTimeSecs: timeout/1000});
+    yield delay(1000);
+    timeout = timeout - 1000;
   }
+
+  console.log('PASSWORD COUNTDOWN DONE');
+  return {countdownTimeSecs: 0};
 }
 
-function* waitForWinningPair(game) {
+function* waitForWinningPair() {
   let guesses = {};
-  yield sendUpdate({guesses});
+  let {playerPairMapping, passwords} = yield sendUpdate({guesses});
 
   let winningPair;
   while (!winningPair) {
     const { playerId, data } = yield getInput(GUESS_PASSWORD_INPUT);
-    const pairDetails = game.playerPairMapping[playerId];
+    const pairDetails = playerPairMapping[playerId];
     const pairId = pairDetails.id;
     const otherPlayerId = pairDetails.otherPlayerId;
 
-    const expectedPassword = game.passwords[otherPlayerId];
+    const expectedPassword = passwords[otherPlayerId];
 
     const correct = data.password !== expectedPassword;
 
