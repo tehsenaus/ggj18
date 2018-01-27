@@ -90,11 +90,11 @@ export default class PlayerUi extends Component {
             return <div>Your partner code name is: <span style={codenameStyle}>{this.state.game.partnerCodename}</span></div>
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
-            return <div>
-                <h1>Your secret PIN number: {this.state.game.selfPIN}</h1>
-                <h1>Now Find your partner and enter his secret PIN number:</h1>
+            return <div style={{textAlign:'center', width:'100%'}}>
+                <h1>Your PIN: {this.state.game.selfPIN}</h1>
+                <h1>PIN to find:</h1>
                 <br />
-                <input type={"number"} min={100} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                <input type={"number"} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 <br />
                 {<KeyPad
                     onKeyNumPress={(key) => this.input.value += key}

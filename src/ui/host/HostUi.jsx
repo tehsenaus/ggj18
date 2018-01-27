@@ -25,6 +25,12 @@ export default class App extends Component {
                 const res = await fetch('/state?id='+clientId+'&seq=' + this.state.seqNo);
                 const json = await res.json();
 
+                const path = require( 'file-loader!../../assets/woosh2.mp3');
+                console.log('AUDIO path: '+path);
+                const audio = new Audio(path);
+                audio.play();
+
+
                 this.setState(json);
                 setTimeout(loop, 5);
             } catch (e) {
