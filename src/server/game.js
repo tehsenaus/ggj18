@@ -1,7 +1,11 @@
 
 import { sendUpdate, delay, either, call, getInput } from './loop';
+const shuffle = require('shuffle-array');
+const randomWords = require('random-words');
+const _ = require('lodash');
 
 const ROUNDS = 3;
+const CODE_NAMES = ['PIG', 'CHICKEN', 'COW'];
 
 export function* lobby(game) {
     game = yield sendUpdate({
@@ -29,6 +33,7 @@ export function* lobby(game) {
             players = {
                 ...players,
                 [clientId]: {
+                    id: clientId,
                     name: data.name
                 }
             };
@@ -39,8 +44,6 @@ export function* lobby(game) {
         }
     }
 }
-
-
 
 
 export function* runGame() {
@@ -56,14 +59,13 @@ export function* runGame() {
 export function* runRound(game) {
     console.log('runRound');
 
-    const pairs = assignPairs(game.players);
+    game = assignPairs(game);
     game = yield sendUpdate({
         ...game,
-        phase: 'assignCodenames',
-        pairs
+        phase: 'assignCodenames'
     });
 
-    game = yield* assignCodenames(game);
+    game = assignCodenames(game);
     game = setPasswords(game);
     game = yield sendUpdate({
         ...game,
@@ -77,17 +79,64 @@ export function* runRound(game) {
     return game;
 }
 
-function assignPairs(players) {
+function assignPairs(game) {
+  console.log('Assigning pairs...');
+  const players = _.values(game.players);
 
+  const pairs = {}; // Holds pairId -> a pair of playerIds
+  const playerPairMapping = {}; // Holds playerId -> playerId
+
+  const shuffledPlayers = shuffle(players, {copy: true});
+  const pairedPlayers = _.chunk(shuffledPlayers, 2);
+
+  pairedPlayers.forEach(pair => {
+    const [player1, player2] = pair;
+
+    // player1 is unpaired.
+    if (!player2) {
+      return;
+    }
+
+    const id = Object.keys(pairs).length;
+    pairs[id] = {id, pair};
+    playerPairMapping[player1.id] = player2.id;
+    playerPairMapping[player2.id] = player1.id;
+  });
+
+  console.log('Assigned pairs:', pairedPlayers);
+  return {
+    ...game,
+    pairs,
+    playerPairMapping
+  }
 }
 
-function* assignCodenames() {
+function assignCodenames(game) {
+  console.log('Assigning codenames...');
 
+  const players = _.values(game.players);
+  const codeNames = {};
+  players.forEach(player => {
+    codeNames[player.id] = shuffle.pick(CODE_NAMES);
+  });
+
+  console.log('Assigned codenames:', codeNames);
+  return {...game, codeNames};
 }
 
 function setPasswords(game) {
+  console.log('Assigning passwords...');
 
+  const players = _.values(game.players);
+  const passwords = {};
+  players.forEach(player => {
+    passwords[player.id] = randomWords();
+  });
+
+  console.log('Assigned passwords:', passwords);
+  return {...game, passwords};
 }
+
 
 function* receivePasswords() {
 
@@ -100,4 +149,3 @@ function updateScores(players) {
 function endGame() {
 
 }
-
