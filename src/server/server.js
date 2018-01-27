@@ -1,8 +1,19 @@
-
+import webpackDevMiddleware from 'webpack-dev-middleware';
+import webpackHotMiddleware from 'webpack-hot-middleware';
+import webpack from 'webpack';
 import express from 'express';
 import {runGameLoop, runGame, getStateUpdate} from './game';
+import webpackConfig from '../../webpack.client.config';
 
+const compiler = webpack(webpackConfig);
 const app = express();
+
+app.use(webpackDevMiddleware(compiler,{
+    noInfo: false,
+    publicPath: '/',
+}));
+
+app.use(webpackHotMiddleware(compiler));
 
 const {
     sendInput,
@@ -25,4 +36,7 @@ app.post('/player', (req, res) => {
     });
 });
 
-app.listen(process.env.PORT || 8080);
+app.listen(process.env.PORT || 8080, () => {
+    console.log(`Public path: ${webpackConfig.output.publicPath}`);
+    console.log('UI listening on port 8080!')
+});
