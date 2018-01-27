@@ -7,7 +7,7 @@ const _ = require('lodash');
 
 const ROUNDS = 3;
 const MIN_NUM_PLAYERS = 3;
-const INPUT_PASSWORDS_TIMEOUT_MS = 10000;
+const INPUT_PASSWORDS_TIMEOUT_MS = 30000;
 const PHASE_DELAY = 5000;
 const CODE_NAMES = '😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 😗 😙 😚 🙂 🤗 🤔 😐 😑 😶 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜 😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 😬 😰 😱 😳 😵 😡 😠 😷 🤒 🤕 🤢 🤧 😇 🤠 🤡 🤥 🤓 😈 👿 👹 👺 💀 👻 👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾'.split(' ');
 
