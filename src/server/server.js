@@ -28,11 +28,11 @@ setTimeout(() => {
     })
 }, 5000);
 
-/*setTimeout(() => {
+setTimeout(() => {
     sendInput('id2', 'addPlayer', {
         name: 'Katie'
     })
-}, 10000);*/
+}, 10000);
 
 setTimeout(() => {
     sendInput('id3', 'addPlayer', {
@@ -45,8 +45,7 @@ app.get('/state', async (req, res) => {
 });
 
 app.post('/player', (req, res) => {
-    const id = sendInput('addPlayer', {
-        id: req.query.id,
+    const id = sendInput(req.query.id,'addPlayer', {
         name: req.query.name
     });
 

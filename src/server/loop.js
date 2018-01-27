@@ -1,4 +1,6 @@
 
+import {HOST_ID} from "../common/constants";
+
 export function runGameLoop(generator) {
     let latestGameState = {};
     let seqNo = 0;
@@ -104,7 +106,7 @@ export function runGameLoop(generator) {
             await nextStatePromise;
         }
 
-        const isHost = false
+        const isHost = clientId === HOST_ID;
 
         if(isHost){
             return {
@@ -112,11 +114,12 @@ export function runGameLoop(generator) {
                 game: latestGameState
             }
         } else {
+            console.log('returning state', latestGameState);
             return {
                 seqNo,
                 game: {
                     phase : latestGameState.phase,
-                    state : latestGameState.players[clientId]
+                    ...latestGameState.players[clientId]
                 }
             }
         }

@@ -16,7 +16,7 @@ export default class App extends Component {
 
         const loop = async () => {
             try {
-                const res = await fetch('/state?seq=' + this.state.seqNo);
+                const res = await fetch('/state?id='+clientId+'&seq=' + this.state.seqNo);
                 const json = await res.json();
 
                 this.setState(json);
