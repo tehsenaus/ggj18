@@ -211,8 +211,8 @@ function* updateScores(game) {
   const previousScores = game.scores;
   const scores = {
     ...previousScores,
-    [player1.id]: (previousScores[player1] || 0) + 1,
-    [player2.id]: (previousScores[player2] || 0) + 1
+    [player1.id]: (previousScores[player1.id] || 0) + 1,
+    [player2.id]: (previousScores[player2.id] || 0) + 1
   };
 
   return yield sendUpdate({scores});
