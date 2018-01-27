@@ -21,9 +21,7 @@
     "express": "^4.16.2",
     "preact": "^8.2.7",
     "random-words": "0.0.1",
-    "shuffle-array": "^1.0.1"
-  },
-  "devDependencies": {
+    "shuffle-array": "^1.0.1",
     "babel": "^6.23.0",
     "babel-cli": "^6.26.0",
     "babel-jest": "^22.1.0",

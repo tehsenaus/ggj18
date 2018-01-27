@@ -17,7 +17,7 @@ export default class App extends Component {
             localStorage.setItem(USER_HASH_KEY, userHash);
         }
 
-        this.setState({ seqNo: -1 });
+        this.setState({ seqNo: -1 , userHash});
 
         const loop = async () => {
             try {
