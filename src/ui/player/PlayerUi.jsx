@@ -17,19 +17,25 @@ export default class App extends Component {
             localStorage.setItem(USER_HASH_KEY, userHash);
         }
 
-        const loop = async () => {
-            const res = await fetch('/state?id='+userHash+'&seq=' + this.state.seqNo);
-            const json = await res.json();
+        this.setState({ seqNo: -1 });
 
-            this.setState({
-                ...json,
-                userHash,
-            });
+        const loop = async () => {
+            try {
+                const res = await fetch('/state?id='+userHash+'&seq=' + this.state.seqNo);
+                const json = await res.json();
+
+                this.setState({
+                    ...json,
+                    userHash
+                });
+                setTimeout(loop, 5);
+            } catch (e) {
+                console.error('poll loop error', e);
+                setTimeout(loop, 1);
+            }
         };
 
         loop();
-
-        setInterval(loop, 1000);
     }
 
     onInputKeyDown(e) {
