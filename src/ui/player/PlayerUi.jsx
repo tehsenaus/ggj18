@@ -122,7 +122,7 @@ export default class PlayerUi extends Component {
     onInputAccepted(e) {
         if(this.state.game.phase === LOBBY_PHASE) {
             const username = this.input.value;
-            fetch("/player?id=" + this.state.userHash + "&name=" + username, {method: "POST"})
+            fetch("/player?id=" + this.state.userHash + "&name=" + encodeURIComponent(username), {method: "POST"})
         } else if(this.state.game.phase === INPUT_PASSWORDS_PHASE){
             const passcode = this.input.value;
             fetch("/password?id=" + this.state.userHash + "&passcode=" + passcode, {method: "POST"})
