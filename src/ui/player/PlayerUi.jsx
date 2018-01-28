@@ -7,7 +7,7 @@ const USER_HASH_KEY = 'user_hash';
 
 const codenameStyle = {
     display: 'block',
-    fontSize: '40px'
+    fontSize: '120px'
 }
 
 export default class PlayerUi extends Component {
@@ -21,9 +21,11 @@ export default class PlayerUi extends Component {
         this.setState({
             game: {
                 phase: YOUR_CODENAME_PHASE,
-                selfCodename: CODE_NAMES[10]
+                selfCodename: CODE_NAMES[Math.floor(Math.random() * CODE_NAMES.length)]
             }
         });
+
+        setTimeout(() => this.mockState(), 1000);
     }
 
     componentDidMount() {
