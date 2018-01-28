@@ -30,10 +30,23 @@ export default class App extends Component {
                         || this.state.game.phase === YOUR_CODENAME_PHASE
                         || this.state.game.phase === PARTNER_CODENAME_PHASE)){
 
-                    const path = require('../../assets/whoosh.wav');
-                    console.log('AUDIO path: ' + path);
-                    const audio = new Audio(path);
+                    const audio = new Audio(require('../../assets/whoosh.wav'));
                     audio.play();
+                }
+
+                if(this.state.game && this.state.game.phase === INPUT_PASSWORDS_PHASE){
+                    if(!this.music) {
+                        this.music = new Audio(require('../../assets/music.wav'));
+                        this.music.loop = true;
+                        this.music.play();
+                    } else {
+                        this.music.play();
+                    }
+                }
+
+                if(this.state.game && this.state.game.phase === ROUND_END_PHASE && this.music){
+                    this.music.pause();
+                    this.music.currentTime = 0;
                 }
 
 
