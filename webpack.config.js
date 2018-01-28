@@ -1,17 +1,24 @@
 const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const _ = require('lodash');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+
+const isProd = process.env.NODE_ENV === 'production';
+
+const hmw = isProd ? [] : ['webpack-hot-middleware/client'];
 
 module.exports = {
   entry: {
-    main: ['babel-polyfill', 'webpack-hot-middleware/client', './src/ui/index.jsx'],
-    host: ['babel-polyfill', 'webpack-hot-middleware/client', './src/ui/host/index.jsx']
+    main: _.flatten([hmw, './src/ui/index.jsx']),
+    host: _.flatten(['babel-polyfill', hmw, './src/ui/host/index.jsx'])
   },
   output: {
     filename: 'build/[name]-bundle-[hash].js'
   },
-  plugins: [
+  plugins: (isProd ? [] : [
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin(),
+    new webpack.NoEmitOnErrorsPlugin()
+  ]).concat([
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: 'html-loader?interpolate=require!src/assets/index.html',
@@ -22,7 +29,9 @@ module.exports = {
       template: 'html-loader?interpolate=require!src/assets/index.html',
       chunks: ['host']
     })
-  ],
+  ], isProd ? [
+    new UglifyJSPlugin()
+  ] : []),
   devtool: 'inline-source-map',
   module: {
     rules: [
