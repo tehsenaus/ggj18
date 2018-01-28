@@ -267,13 +267,13 @@ export default class PlayerUi extends Component {
           return (
             <div className=" ui__lobby ui__lobby--has-entered">
 
-                <h2>You are in the lobby, wait until game starts.</h2>
+                <h2 className={"m-b--md"}>You are in the lobby, wait until game starts.</h2>
 
                 <p>{ game.players.length } player(s) joined:</p>
 
                 { game.players.map(player => {
                     const isCurrent = player.playerId === localStorage.getItem(USER_HASH_KEY)
-                    return <span className="badge badge-pill badge-secondary"
+                    return <span className="badge badge-pill badge-secondary m-b--xs"
                         style={{ 
                             fontSize: '1.5em', 
                             marginRight: '0.5em', 
