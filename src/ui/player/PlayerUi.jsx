@@ -1,7 +1,8 @@
 import { h, Component } from 'preact';
 import guid from '../../common/guid'
-import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE} from "../../common/constants";
+import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
+import { values, get, sortBy } from 'lodash';
 
 const USER_HASH_KEY = 'user_hash';
 
@@ -127,8 +128,15 @@ export default class PlayerUi extends Component {
           );
         }
 
+        if(this.state.game.phase === GAME_END_PHASE) {
+            return (
+              <div>
+                <h1>Game Over!</h1>
+                {this.renderLeaderboard(this.state.game.scores, this.state.game.players)}
 
-        return <h1>{this.state.game.phase}</h1>
+              </div>
+            )
+        }
     }
 
     renderLobby(game) {
@@ -165,5 +173,30 @@ export default class PlayerUi extends Component {
             )) }
             </div>
           );
+    }
+
+    renderLeaderboard(scores, players) {
+        players = sortBy(players, (p) => -(scores[p.playerId] || 0));
+
+        return (
+            <table className="table table-striped leaderboard">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>NAME</th>
+                        <th>SCORE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    { values(players).map((player, i) => (
+                        <tr style={{ fontSize: i === 0 ? '2em' : '1em' }}>
+                            <td>{ i === 0 ? '🏆' : '#'+(i+1) }</td>
+                            <td>{ player.name }</td>
+                            <td>{ scores[player.playerId] || 0 }</td>
+                        </tr>
+                    )) }
+                </tbody>
+            </table>
+        );
     }
 }

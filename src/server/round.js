@@ -75,7 +75,8 @@ function* receiveGuesses(round) {
 }
 
 function isRoundFinished(round) {
-  const numberCorrectPairs = _.values(round.players)
+  const players = _.values(round.players);
+  const numberCorrectPairs = players
       .filter(player => {
         if (!isPlayerFinished(player)) {
           return false;
@@ -85,7 +86,7 @@ function isRoundFinished(round) {
         return isPlayerFinished(otherPlayer);
       })
       .length / 2;
-  return numberCorrectPairs > 0;
+  return numberCorrectPairs >= Math.floor(players.length / 2);
 }
 
 export function isPlayerFinished(player) {
