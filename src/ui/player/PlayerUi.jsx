@@ -241,27 +241,29 @@ export default class PlayerUi extends Component {
 
     renderLobby(game) {
         if(!game.name){
-            return <div className="o-flex--1 ui__lobby">
+            return <div className="ui__lobby">
                 <h2>Please enter your name below</h2>
                 
                 <div className="input__screen">
-                    <input type={"text"}
-                        placeholder={"Your name"}
-                        maxLength={16}
-                        ref={(input) => { this.input = input; }}
-                        onKeyPress={(e) => this.onInputKeyDown(e)}>
-                    </input>
-                    <br/>
-                    <br/>
-                    <button className=" btn-primary" onClick={(e) => this.onInputAccepted()}>
+                    <div>
+                        <input type={"text"}
+                            placeholder={"Your name"}
+                            maxLength={16}
+                            ref={(input) => { this.input = input; }}
+                            onKeyPress={(e) => this.onInputKeyDown(e)}>
+                        </input>
+                    </div>
+                    <div>
+                    <button className="btn btn-primary" onClick={(e) => this.onInputAccepted()}>
                     Send
                     </button>
+                    </div>
                 </div>
                 </div>
         }
 
           return (
-            <div className="o-flex--1 ui__lobby ui__lobby--has-entered">
+            <div className=" ui__lobby ui__lobby--has-entered">
 
                 <h2>You are in the lobby, wait until game starts.</h2>
 
