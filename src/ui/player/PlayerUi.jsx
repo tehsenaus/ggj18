@@ -110,7 +110,7 @@ export default class PlayerUi extends Component {
             return (
               <div>
                 <h1>Game Over!</h1>
-                {this.renderLeaderboard(this.state.game.scores, this.state.game.players)}
+                {this.renderLeaderboard(this.state.game.scores, this.state.game.players, this.state.game.playerId)}
 
               </div>
             )
@@ -153,7 +153,7 @@ export default class PlayerUi extends Component {
           );
     }
 
-    renderLeaderboard(scores, players) {
+    renderLeaderboard(scores, players, playerId) {
         players = sortBy(players, (p) => -(scores[p.playerId] || 0));
 
         return (
@@ -169,7 +169,7 @@ export default class PlayerUi extends Component {
                     { values(players).map((player, i) => (
                         <tr style={{ fontSize: i === 0 ? '2em' : '1em' }}>
                             <td>{ i === 0 ? '🏆' : '#'+(i+1) }</td>
-                            <td>{ player.name }</td>
+                            <td>{ player.playerId === playerId ?   `YOU (${player.name})` : player.name }</td>
                             <td>{ scores[player.playerId] || 0 }</td>
                         </tr>
                     )) }
