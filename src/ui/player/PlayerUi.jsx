@@ -88,7 +88,11 @@ export default class PlayerUi extends Component {
                 this.setState({
                     ...json,
                     userHash,
-                    inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState
+                    inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState,
+                    game: {
+                        phase: INPUT_PASSWORDS_PHASE,
+                        name: 'yolo'
+                    }
                 });
 
                 setTimeout(loop, 5);
@@ -170,13 +174,13 @@ export default class PlayerUi extends Component {
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
-                <h1>Your PIN: {this.state.game && this.state.game.selfPIN}</h1>
-                <h1>PIN to find:</h1>
-                <br />
-                <div className="ui__input__pin">
-                    <input type={"number"} maxLength={32} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                <h2>Your PIN: {this.state.game && this.state.game.selfPIN}</h2>
+                <h2>PIN to find:</h2>
+                
+                <div className="input__pin">
+                    <input type={"number"} maxLength={3} disabled={true} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 </div>
-                <br />
+                
                 {this.state.inputState === VALIDATED_CORRECT && <h3>Correct!</h3> }
                 {this.state.inputState === VALIDATED_NOT_CORRECT && <h3>PIN Not Correct!</h3> }
                 {<KeyPad
@@ -230,7 +234,7 @@ export default class PlayerUi extends Component {
         if(!game.name){
             return <div className="o-flex--1 ui__lobby o-flex">
                 <h1>Please enter your name below</h1>
-                <br />
+                
                 <input type={"text"}
                        maxLength={32}
                        ref={(input) => { this.input = input; }}
