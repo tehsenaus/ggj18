@@ -57,9 +57,12 @@ export default class App extends Component {
                     <h1>{ GAME_TITLE }</h1>
 
                     { phase === LOBBY_PHASE && <div>
-                        <img src={require('../../assets/qrcode.svg')}></img>
                         <h5>Find your secret partner by their codeface, and <em>transmit</em> your secret PIN!</h5>
-                        <button className="btn btn-primary" onClick={this.startGame}>START GAME</button>
+                        <img src={require('../../assets/qrcode.svg')} style={{ height: '40vh', maxHeight: '29vw' }}></img>
+                        <div className="float-right" style={{ width: '70%', fontSize: '4em' }}>
+                            <a href="http://goo.gl/wa9wsa">goo.gl/wa9wsa</a>
+                        </div>
+                        <div className="clearfix"><button className="btn btn-primary" onClick={this.startGame}>START GAME</button></div>
                     </div>}
 
                     { phase === ROUND_END_PHASE && (<div>
@@ -80,9 +83,9 @@ export default class App extends Component {
 
                 { (phase === ROUND_END_PHASE || phase === GAME_END_PHASE) && this.renderLeaderboard(players, phase, round) }
 
-                <pre>
+                {/* <pre>
                     { JSON.stringify(this.state, null, 2) }
-                </pre>
+                </pre> */}
             </div>
         );
     }
