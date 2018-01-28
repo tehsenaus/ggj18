@@ -55,16 +55,19 @@ body {
 #mount {}
 
 .ui__lobby {
-    text-align: center; 
+    text-align: center;
+    width: 100%;
 }
 
 .ui__player {
     display: flex;
     width: 100%;
     flex: 1;
+    max-width: 600px;
+    margin: 0 auto;
 }
 .ui__player.phase-inputPasswords {
-    padding-bottom: 60%;
+    padding-bottom: 60vh;
 }
 .input__screen {
     width: 100%;
@@ -104,6 +107,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100%;
+    width: 100%;
 }
 .o-flex--1 { flex: 1; }
 .o-flex--2 { flex: 2; }
