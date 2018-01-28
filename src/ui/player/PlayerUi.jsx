@@ -7,7 +7,7 @@ const USER_HASH_KEY = 'user_hash';
 
 const codenameStyle = {
     display: 'block',
-    fontSize: '80px'
+    fontSize: '49px'
 }
 
 export default class PlayerUi extends Component {
