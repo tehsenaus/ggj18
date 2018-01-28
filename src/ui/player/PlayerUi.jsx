@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
 import guid from '../../common/guid'
-import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from "../../common/constants";
+import {CODE_NAMES, INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
 import { values, get, sortBy } from 'lodash';
 
@@ -8,8 +8,15 @@ const USER_HASH_KEY = 'user_hash';
 
 const codenameStyle = {
     display: 'block',
-    fontSize: '6em'
+    fontSize: '49px',
+    width: '50vw',
+    maxWidth: '240px',
+    margin: '0 auto'
 }
+
+const NOT_VALIDATED = 'not-validated';
+const VALIDATED_CORRECT = 'validated-correct';
+const VALIDATED_NOT_CORRECT = 'validated-not-correct';
 
 export default class PlayerUi extends Component {
 
@@ -18,14 +25,29 @@ export default class PlayerUi extends Component {
         this.input = null;
     }
 
+    mockState() {
+        this.setState({
+            game: {
+                phase: YOUR_CODENAME_PHASE,
+                selfCodename: CODE_NAMES[Math.floor(Math.random() * CODE_NAMES.length)]
+            }
+        });
+
+        setTimeout(() => this.mockState(), 1000);
+    }
+
     componentDidMount() {
+        this.pollState();
+    }
+    
+    pollState() {
         let userHash = localStorage.getItem(USER_HASH_KEY);
         if(!userHash){
             userHash = guid();
             localStorage.setItem(USER_HASH_KEY, userHash);
         }
 
-        this.setState({ seqNo: -1 , userHash});
+        this.setState({ seqNo: -1 , userHash, inputState: NOT_VALIDATED});
 
         const loop = async () => {
             try {
@@ -34,7 +56,8 @@ export default class PlayerUi extends Component {
 
                 this.setState({
                     ...json,
-                    userHash
+                    userHash,
+                    inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState
                 });
                 setTimeout(loop, 5);
             } catch (e) {
@@ -59,6 +82,19 @@ export default class PlayerUi extends Component {
         } else if(this.state.game.phase === INPUT_PASSWORDS_PHASE){
             const passcode = this.input.value;
             fetch("/password?id=" + this.state.userHash + "&passcode=" + passcode, {method: "POST"})
+            .then((response) => {
+                return response.json();
+            })
+            .then((response) => {
+                this.setState({
+                    ...this.state,
+                    inputState: response.correct ? VALIDATED_CORRECT : VALIDATED_NOT_CORRECT
+                })
+
+                if(this.state.inputState === VALIDATED_NOT_CORRECT){
+                    this.input.value = '';
+                }
+            })
         }
     };
 
@@ -76,10 +112,10 @@ export default class PlayerUi extends Component {
           return this.renderLobby(this.state.game);
         }
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
-            return <div>Your code name is: <span style={codenameStyle}>{this.state.game.selfCodename}</span></div>
+            return <h3>Your CODEFACE is: {this.renderCodename(this.state.game.selfCodename)}</h3>
         }
         if(this.state.game.phase === PARTNER_CODENAME_PHASE ) {
-            return <div>Your partner code name is: <span style={codenameStyle}>{this.state.game.partnerCodename}</span></div>
+            return <h3>Your partner's CODEFACE is: {this.renderCodename(this.state.game.partnerCodename)}</h3>
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
@@ -88,7 +124,11 @@ export default class PlayerUi extends Component {
                 <br />
                 <input type={"number"} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 <br />
+                {this.state.inputState === VALIDATED_CORRECT && <h3>Correct!</h3> }
+                {this.state.inputState === VALIDATED_NOT_CORRECT && <h3>PIN Not Correct!</h3> }
                 {<KeyPad
+                    showGlow={this.state.inputState !== NOT_VALIDATED}
+                    glowColor={this.state.inputState === VALIDATED_CORRECT ? 'green' : this.state.inputState === VALIDATED_NOT_CORRECT ? 'red' : 'gray'}
                     onKeyNumPress={(key) => this.input.value += key}
                     onDelete={() => this.input.value = this.input.value.slice(0,-1)}
                     onAccept={() => this.onInputAccepted()}
@@ -117,9 +157,22 @@ export default class PlayerUi extends Component {
         }
     }
 
-    renderLobby(game) {
-        console.log(game);
+    renderCodename(codename) {
+        //<span style={codenameStyle}>{this.state.game.selfCodename}</span>
+        var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const size = iOS ? 80 : 48;
+        const pad = 10;
+        return <canvas ref={e => {
+            if (e) {
+                var ctx = e.getContext('2d');
+                ctx.clearRect(0, 0, e.width, e.height);
+                ctx.font = size + 'px sans-serif';
+                ctx.fillText(codename, pad, size);
+            }
+        }} style={codenameStyle} width={size + pad * 2} height={size + 10} />;
+    }
 
+    renderLobby(game) {
         if(!game.name){
             return <div>
                 <h1>Please enter your name below</h1>
