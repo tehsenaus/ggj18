@@ -8,8 +8,8 @@ const USER_HASH_KEY = 'user_hash';
 const codenameStyle = {
     display: 'block',
     fontSize: '49px',
-    width: '40vw',
-    maxWidth: '140px',
+    width: '50vw',
+    maxWidth: '160px',
     margin: '0 auto'
 }
 
@@ -118,19 +118,18 @@ export default class PlayerUi extends Component {
         //<span style={codenameStyle}>{this.state.game.selfCodename}</span>
         var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         const size = iOS ? 80 : 48;
+        const pad = 10;
         return <canvas ref={e => {
             if (e) {
                 var ctx = e.getContext('2d');
                 ctx.clearRect(0, 0, e.width, e.height);
                 ctx.font = size + 'px sans-serif';
-                ctx.fillText(codename, 0, size);
+                ctx.fillText(codename, pad, size);
             }
-        }} style={codenameStyle} width={size} height={size + 10} />;
+        }} style={codenameStyle} width={size + pad * 2} height={size + 10} />;
     }
 
     renderLobby(game) {
-        console.log(game);
-
         if(!game.name){
             return <div>
                 <h1>Please enter your name below</h1>
