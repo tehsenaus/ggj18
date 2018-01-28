@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
 import guid from '../../common/guid'
-import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from "../../common/constants";
+import {CODE_NAMES, INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
 import { values, get, sortBy } from 'lodash';
 
@@ -8,8 +8,11 @@ const USER_HASH_KEY = 'user_hash';
 
 const codenameStyle = {
     display: 'block',
-    fontSize: '6em'
-};
+    fontSize: '49px',
+    width: '50vw',
+    maxWidth: '240px',
+    margin: '0 auto'
+}
 
 const NOT_VALIDATED = 'not-validated';
 const VALIDATED_CORRECT = 'validated-correct';
@@ -22,7 +25,53 @@ export default class PlayerUi extends Component {
         this.input = null;
     }
 
+    // mockState() {
+    //     this.setState({
+    //         game: {
+    //             phase: YOUR_CODENAME_PHASE,
+    //             selfCodename: CODE_NAMES[Math.floor(Math.random() * CODE_NAMES.length)]
+    //         }
+    //     });
+
+    //     setTimeout(() => this.mockState(), 1000);
+    // }
+
+//     mockFirstCodefaceState() {
+//         this.setState({
+//   "seqNo": 8,
+//   "userHash": "3b6bd488-210b-c656-81bb-e563c9aea67f",
+//   "inputState": "not-validated",
+//   "game": {
+//     "phase": "yourCodename",
+//     "playerId": "3b6bd488-210b-c656-81bb-e563c9aea67f",
+//     "name": "S",
+//     "selfCodename": "😥",
+//     "partnerCodename": "😘",
+//     "selfPIN": "209",
+//     "players": [
+//       {
+//         "playerId": "3b6bd488-210b-c656-81bb-e563c9aea67f",
+//         "name": "S"
+//       },
+//       {
+//         "playerId": "abaa7e2c-0053-7f19-1a6c-0901b361d949",
+//         "name": "K"
+//       }
+//     ],
+//     "roundPlayers": {},
+//     "scores": {},
+//     "roundNumber": 0,
+//     "score": 0,
+//     "countdownTimeSecs": 5
+//   }
+// });
+//     }
+
     componentDidMount() {
+        this.pollState();
+    }
+
+    pollState() {
         let userHash = localStorage.getItem(USER_HASH_KEY);
         if(!userHash){
             userHash = guid();
@@ -41,6 +90,7 @@ export default class PlayerUi extends Component {
                     userHash,
                     inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState
                 });
+
                 setTimeout(loop, 5);
             } catch (e) {
                 console.error('poll loop error', e);
@@ -83,6 +133,10 @@ export default class PlayerUi extends Component {
     render() {
         return <div className="ui__player">
             { this.renderMain() }
+
+            {/* <pre>
+                { JSON.stringify(this.state, null, 2) }
+            </pre> */}
         </div>
     }
 
@@ -93,11 +147,26 @@ export default class PlayerUi extends Component {
         if(this.state.game.phase === LOBBY_PHASE){
           return this.renderLobby(this.state.game);
         }
+
+        if (!this.state.game.name) {
+          return <div>You are not in the game! Wait for next game to start.</div>
+        }
+
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
-            return <div>Your code name is: <span style={codenameStyle}>{this.state.game.selfCodename}</span></div>
+            return (
+              <div>
+                <h3>Your CODEFACE is: {this.renderCodename(this.state.game.selfCodename)}</h3>
+                {this.renderCountdown(this.state.game.countdownTimeSecs)}
+              </div>
+          );
         }
         if(this.state.game.phase === PARTNER_CODENAME_PHASE ) {
-            return <div>Your partner code name is: <span style={codenameStyle}>{this.state.game.partnerCodename}</span></div>
+            return (
+              <div>
+                <h3>Your partner's CODEFACE is: {this.renderCodename(this.state.game.partnerCodename)}</h3>
+                {this.renderCountdown(this.state.game.countdownTimeSecs)}
+              </div>
+            );
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
@@ -105,7 +174,7 @@ export default class PlayerUi extends Component {
                 <h1>PIN to find:</h1>
                 <br />
                 <div className="input__pin">
-                    <input type={"number"} maxLength={3} disabled={true} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                    <input type={"number"} maxLength={32} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 </div>
                 <br />
                 {this.state.inputState === VALIDATED_CORRECT && <h3>Correct!</h3> }
@@ -126,6 +195,7 @@ export default class PlayerUi extends Component {
               <h1>Round End!</h1>
               <p>Your score: {this.state.game.score}</p>
               <p>Get ready for round { this.state.game.roundNumber + 2 }!</p>
+              {this.renderCountdown(this.state.game.countdownTimeSecs)}
             </div>
           );
         }
@@ -134,22 +204,36 @@ export default class PlayerUi extends Component {
             return (
               <div>
                 <h1>Game Over!</h1>
-                {this.renderLeaderboard(this.state.game.scores, this.state.game.players)}
+                {this.renderLeaderboard(this.state.game.scores, this.state.game.players, this.state.game.playerId, this.state.game.roundPlayers)}
 
               </div>
             )
         }
     }
 
-    renderLobby(game) {
-        console.log(game);
+    renderCodename(codename) {
+        //<span style={codenameStyle}>{this.state.game.selfCodename}</span>
+        var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const size = iOS ? 80 : 48;
+        const pad = 10;
+        return <canvas style={codenameStyle} width={size + pad * 2} height={size + 10} ref={e => {
+            if (e) {
+                var ctx = e.getContext('2d');
+                ctx.clearRect(0, 0, e.width, e.height);
+                ctx.font = size + 'px sans-serif';
+                ctx.fillText(codename, pad, size);
+            }
+        }} />;
+    }
 
+    renderLobby(game) {
         if(!game.name){
             return <div className="ui__lobby">
                 <h1>Please enter your name below</h1>
                 <br />
                 <input type={"text"}
-                      ref={(input) => { this.input = input; }}
+                       maxLength={32}
+                       ref={(input) => { this.input = input; }}
                       onKeyPress={(e) => this.onInputKeyDown(e)}>
                 </input>
 
@@ -170,14 +254,14 @@ export default class PlayerUi extends Component {
             { game.players.map(player => (
                 <span className="badge badge-pill badge-secondary"
                       style={{ fontSize: '1.5em', marginRight: '0.5em' }}>
-                      { player.name }
+                      { player.playerId === game.playerId ?   `YOU (${player.name})` : player.name }
                 </span>
             )) }
             </div>
           );
     }
 
-    renderLeaderboard(scores, players) {
+    renderLeaderboard(scores, players, playerId, roundPlayers) {
         players = sortBy(players, (p) => -(scores[p.playerId] || 0));
 
         return (
@@ -193,12 +277,24 @@ export default class PlayerUi extends Component {
                     { values(players).map((player, i) => (
                         <tr style={{ fontSize: i === 0 ? '2em' : '1em' }}>
                             <td>{ i === 0 ? '🏆' : '#'+(i+1) }</td>
-                            <td>{ player.name }</td>
+                            <td>{ player.playerId === playerId ?   `YOU (${player.name})` : player.name } { (roundPlayers[player.playerId] && roundPlayers[player.playerId].codeName) || '' }</td>
                             <td>{ scores[player.playerId] || 0 }</td>
                         </tr>
                     )) }
                 </tbody>
             </table>
         );
+    }
+
+    renderCountdown(countdownTimeSecs) {
+      if (!countdownTimeSecs) {
+        return <span></span>
+      }
+
+        return (
+            <div className="text-center">
+                <h1 style={{ fontSize: '5em' }}>{ countdownTimeSecs } </h1>
+            </div>
+        )
     }
 }

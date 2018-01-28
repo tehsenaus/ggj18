@@ -37,7 +37,14 @@ export default class KeyPad extends Component {
         };
 
         return <table style={tableStyle}>
-            {this.state.rows.map(row => <tr>{row.map(cell => <td style={cellStyle}><button className="btn btn-primary" style={{width: '100%', height:'80px'}} onClick={() => this.onCellSelected(cell)}>{cell}</button></td>)}</tr>)}
+            {this.state.rows.map(row => <tr>{row.map(cell => <td style={cellStyle}>
+                <button className={"btn " + (cell == 'del' ? 'btn-danger' : cell == 'ent' ? 'btn-success' : 'btn-primary')}
+                    style={{width: '100%', height:'80px'}}
+                    onClick={() => this.onCellSelected(cell)}
+                >
+                    {cell}
+                </button>
+            </td>)}</tr>)}
         </table>
     }
 }

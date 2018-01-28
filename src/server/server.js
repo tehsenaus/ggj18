@@ -5,7 +5,7 @@ import express from 'express';
 import {runGameLoop} from './loop';
 import {runGame} from './game';
 import webpackConfig from '../../webpack.config.js';
-import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
+import {HOST_ID, ROUND_END_PHASE, GAME_END_PHASE, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
 import {get} from "lodash";
 
 const _ = require('lodash');
@@ -58,21 +58,23 @@ app.get('/state', async (req, res) => {
 
         if (isHost) {
             return latestGameState;
-        } else {
-            const players = latestGameState.round && latestGameState.round.players || {};
-            const player = players[clientId] || {};
-            const otherPlayer = players[player.otherPlayerId] || {};
-            return {
-                phase : latestGameState.phase,
-                ...get(latestGameState, ['players', clientId], {}),
-                selfCodename: player.codeName,
-                partnerCodename: otherPlayer.codeName,
-                selfPIN: player.password,
-                players: _.values(latestGameState.players),
-                scores: latestGameState.scores,
-                roundNumber: latestGameState.round && latestGameState.round.roundNumber,
-                score: get(latestGameState, ['scores', clientId], 0),
-            }
+        }
+
+        const players = latestGameState.round && latestGameState.round.players || {};
+        const player = players[clientId] || {};
+        const otherPlayer = players[player.otherPlayerId] || {};
+        return {
+            phase : latestGameState.phase,
+            ...get(latestGameState, ['players', clientId], {}),
+            selfCodename: player.codeName,
+            partnerCodename: otherPlayer.codeName,
+            selfPIN: player.password,
+            players: _.values(latestGameState.players),
+            roundPlayers: [ROUND_END_PHASE, GAME_END_PHASE].indexOf(latestGameState.phase) >= 0 ? players : {},
+            scores: latestGameState.scores,
+            roundNumber: latestGameState.round && latestGameState.round.roundNumber,
+            score: get(latestGameState, ['scores', clientId], 0),
+            countdownTimeSecs: latestGameState.countdownTimeSecs
         }
     }));
 });
@@ -103,12 +105,14 @@ app.delete('/game', (req, res) => {
     if ( req.query.id === HOST_ID ) {
         sendInput(req.query.id, RESET_GAME_INPUT, {});
     }
+    res.end();
 });
 
 app.post('/game/start', (req, res) => {
     if ( req.query.id === HOST_ID ) {
         sendInput(req.query.id, START_GAME_INPUT, {});
     }
+    res.end();
 });
 
 app.listen(process.env.PORT || 8080, () => {
