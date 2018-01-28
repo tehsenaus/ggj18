@@ -96,7 +96,7 @@ export function isPlayerFinished(player) {
 function receiveGuess(playerId, password, round) {
   const player = round.players[playerId];
   if (!player) {
-    return;
+    return round;
   }
 
   if (!player.otherPlayerId) {
