@@ -8,6 +8,8 @@ import webpackConfig from '../../webpack.config.js';
 import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
 import {get} from "lodash";
 
+const _ = require('lodash');
+
 const compiler = webpack(webpackConfig);
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
@@ -65,7 +67,10 @@ app.get('/state', async (req, res) => {
                 ...get(latestGameState, ['players', clientId], {}),
                 selfCodename: player.codeName,
                 partnerCodename: otherPlayer.codeName,
-                selfPIN: player.password
+                selfPIN: player.password,
+                players: _.values(latestGameState.players),
+                roundNumber: latestGameState.round && latestGameState.round.roundNumber,
+                score: get(latestGameState, ['scores', clientId], 0),
             }
         }
     }));
@@ -81,14 +86,16 @@ app.post('/player', (req, res) => {
     });
 });
 
-app.post('/password', (req, res) => {
-    const id = sendInput(req.query.id, GUESS_PASSWORD_INPUT, {
+app.post('/password', async (req, res) => {
+    const clientId = req.query.id;
+
+    sendInput(clientId, GUESS_PASSWORD_INPUT, {
         password: req.query.passcode
     });
 
-    res.json({
-        id
-    });
+    const state = await getStateUpdate(clientId, 0);
+
+    res.json(get(state.game, ['round', 'players', clientId, 'guess'], {}));
 });
 
 app.delete('/game', (req, res) => {
