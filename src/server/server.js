@@ -105,12 +105,14 @@ app.delete('/game', (req, res) => {
     if ( req.query.id === HOST_ID ) {
         sendInput(req.query.id, RESET_GAME_INPUT, {});
     }
+    res.end();
 });
 
 app.post('/game/start', (req, res) => {
     if ( req.query.id === HOST_ID ) {
         sendInput(req.query.id, START_GAME_INPUT, {});
     }
+    res.end();
 });
 
 app.listen(process.env.PORT || 8080, () => {
