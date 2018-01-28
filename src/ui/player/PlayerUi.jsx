@@ -89,10 +89,6 @@ export default class PlayerUi extends Component {
                     ...json,
                     userHash,
                     inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState,
-                    game: {
-                        phase: INPUT_PASSWORDS_PHASE,
-                        name: 'yolo'
-                    }
                 });
 
                 setTimeout(loop, 5);
