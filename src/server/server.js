@@ -6,6 +6,7 @@ import {runGameLoop} from './loop';
 import {runGame} from './game';
 import webpackConfig from '../../webpack.client.config';
 import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
+import {get} from "lodash";
 
 const compiler = webpack(webpackConfig);
 const app = express();
@@ -46,7 +47,23 @@ promise.catch(e => {
 // }, 30);
 
 app.get('/state', async (req, res) => {
-    res.json(await getStateUpdate(req.query.id, req.query.seq));
+    const clientId = req.query.id;
+    res.json(await getStateUpdate(req.query.id, req.query.seq, latestGameState => {
+        const isHost = clientId === HOST_ID;
+        
+        if (isHost) {
+            return latestGameState;
+        } else {
+            const otherPlayerId = get(latestGameState, ['playerPairMapping', clientId, 'otherPlayerId']);
+            return {
+                phase : latestGameState.phase,
+                ...get(latestGameState, ['players', clientId], {}),
+                selfCodename: get(latestGameState, ['codeNames', clientId]),
+                partnerCodename: get(latestGameState, ['codeNames', otherPlayerId]),
+                selfPIN: get(latestGameState, ['passwords', clientId])
+            }
+        }
+    }));
 });
 
 app.post('/player', (req, res) => {

@@ -1,76 +1,13 @@
 
-import {HOST_ID} from "../common/constants";
-import {get} from "lodash";
+import {runSaga} from "redux-saga";
+import {take, put, race, call, select} from "redux-saga/effects";
 
-export function runGameLoop(generator) {
+export function runGameLoop(gameSaga) {
     let latestGameState = {};
     let seqNo = 0;
     let nextStatePromise = Promise.resolve({});
     let _sendUpdate;
-
-    const inputCallbacks = {};
-
-    const processValue = context => async value => {
-        console.log('processValue', value);
-
-        switch ( value.type ) {
-            case 'delay':
-                await delayPromise(value.t);
-                break;
-
-            case 'update':
-                return _sendUpdate(value.state);
-
-            case 'getInput':
-                return await new Promise(resolve => {
-                    inputCallbacks[value.inputType] = resolve;
-                });
-
-            case 'either': {
-                let done = false;
-                const eitherContext = {
-                    // We are done if this branch is done, or if any outer branch is done
-                    get done() { return done || context.done }
-                };
-                const res = await Promise.race(
-                    value.options.map(processValue(eitherContext))
-                );
-
-                // Mark as done, so any sub-generators stop
-                done = true;
-
-                return res;
-            }
-
-            case 'call':
-                const res = value.fn();
-                if ( res && typeof res.next === 'function' ) {
-                    return await pump(context, res);
-                } else {
-                    return await res;
-                }
-
-            default:
-                throw new Error('invalid yield value: ' + value);
-        }
-    }
-
-    const pump = async (context, generator, sendValue) => {
-        const { value, done } = generator.next(sendValue);
-
-        if ( context.done ) {
-            console.log('pump: context is done');
-            return;
-        }
-        if ( done ) {
-            console.log('pump: done');
-            return value;
-        };
-
-        const returnVal = await processValue(context)(value);
-
-        return await pump(context, generator, returnVal);
-    };
+    let inputListeners = [];
 
     (function loop() {
         nextStatePromise = new Promise(resolve => {
@@ -84,14 +21,27 @@ export function runGameLoop(generator) {
         }).then(loop);
     })();
 
-    const promise = pump({}, generator);
+    const task = runSaga({
+        subscribe: callback => {
+            inputListeners.push(callback);
+            return () => {
+                inputListeners = inputListeners.filter(listener => listener !== callback);
+            };
+        },
+        dispatch: update => {
+            _sendUpdate(update);
+        },
+        getState: () => latestGameState,
+        logger: (...args) => console.log(...args),
+    }, () => gameSaga);
+
+    const promise = task.done;
 
     return {
-        sendInput: (clientId, inputType, data) => {
-            console.log('sendInput', clientId, inputType, data);
-            if (inputCallbacks[inputType]) {
-                inputCallbacks[inputType]({ clientId, inputType, data });
-            }
+        sendInput: (clientId, type, data) => {
+            console.log('sendInput', clientId, type, data);
+            const input = { type, clientId, data };
+            inputListeners.forEach(listener => listener(input));
         },
         getStateUpdate,
         promise,
@@ -102,52 +52,38 @@ export function runGameLoop(generator) {
      *
      * If the client is already up to date, waits for a state change before resolving.
      */
-    async function getStateUpdate(clientId, lastSeqNoSeen) {
+    async function getStateUpdate(clientId, lastSeqNoSeen, selector = x => x) {
         if ( lastSeqNoSeen == seqNo ) {
             await Promise.race([ nextStatePromise, delayPromise(15000) ]);
         }
 
-        const isHost = clientId === HOST_ID;
-
-        if(isHost){
-            return {
-                seqNo,
-                game: latestGameState
-            }
-        } else {
-            const otherPlayerId = get(latestGameState, ['playerPairMapping', clientId, 'otherPlayerId']);
-            return {
-                seqNo,
-                game: {
-                    phase : latestGameState.phase,
-                    ...get(latestGameState, ['players', clientId], {}),
-                    selfCodename: get(latestGameState, ['codeNames', clientId]),
-                    partnerCodename: get(latestGameState, ['codeNames', otherPlayerId]),
-                    selfPIN: get(latestGameState, ['passwords', clientId])
-                }
-            }
+        return {
+            seqNo,
+            game: selector(latestGameState),
         }
     }
 }
 
 export function getInput(inputType) {
-    return { type: 'getInput', inputType };
+    console.log('getInput:', inputType);
+    return take(inputType);
 }
 
 export function sendUpdate(state) {
-    return { type: 'update', state };
+    return call(function *() {
+        yield put(state);
+        return yield select();
+    });
 }
 
-export function delay(t) {
-    return { type: 'delay', t };
+export { call } from 'redux-saga/effects';
+
+export function delay(ms) {
+    return call(() => delayPromise(ms));
 }
 
 export function either(...options) {
-    return { type: 'either', options };
-}
-
-export function call(fn) {
-    return { type: 'call', fn };
+    return race(options);
 }
 
 export function delayPromise(t) {
