@@ -1,13 +1,13 @@
 import { h, Component } from 'preact';
 import guid from '../../common/guid'
-import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE} from "../../common/constants";
+import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
 
 const USER_HASH_KEY = 'user_hash';
 
 const codenameStyle = {
     display: 'block',
-    fontSize: '8em'
+    fontSize: '6em'
 }
 
 export default class PlayerUi extends Component {
@@ -94,6 +94,19 @@ export default class PlayerUi extends Component {
                 />}
             </div>
         }
+
+        if(this.state.game.phase === ROUND_END_PHASE) {
+          return (
+            <div>
+              <h1>Round End!</h1>
+              <p>Your score: {this.state.game.score}</p>
+              <p>Get ready for round { this.state.game.roundNumber + 2 }!</p>
+            </div>
+          );
+        }
+
+
+        return <h1>{this.state.game.phase}</h1>
     }
 
     renderLobby(game) {
