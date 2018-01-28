@@ -52,42 +52,29 @@ body {
 }
 
 
-
-@media screen and (min-width: 320px) and (max-width: 767px) and (orientation: landscape) {
-  html {
-    transform: rotate(0);
-    transform-origin: left top;
-    width: 100vh;
-    overflow-x: hidden;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-}
-
-
 #mount {}
 
 .ui__lobby {
-    text-align: center; 
+    text-align: center;
+    width: 100%;
 }
 
 .ui__player {
     display: flex;
+    width: 100%;
     flex: 1;
-    padding-bottom: 60%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.ui__player.phase-inputPasswords {
+    padding-bottom: 60vh;
 }
 .input__screen {
-    display: flex;
-    flex-wrap: wrap;
-    flex: 1;
     width: 100%;
     padding: 12px;
 }
 .input__screen input {
-    flex: 1;
+    width: 100%;
     font-size: 2em;
     border: 2px solid var(--light);
     background-color: rgba(255, 255, 255, 0.16);
@@ -103,7 +90,7 @@ body {
     font-style: italic;
 }
 .input__screen button {
-    flex: 1;
+    width: 100%;
     margin-top: 12px;
     height: 48px;
 }
@@ -120,6 +107,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100%;
+    width: 100%;
 }
 .o-flex--1 { flex: 1; }
 .o-flex--2 { flex: 2; }
