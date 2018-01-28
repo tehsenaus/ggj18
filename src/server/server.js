@@ -80,8 +80,15 @@ app.get('/state', async (req, res) => {
 });
 
 app.post('/player', (req, res) => {
-    const id = sendInput(req.query.id, ADD_PLAYER_INPUT, {
-        name: req.query.name
+    const name = req.query.name;
+    const playerId = req.query.id;
+    if (!name || !playerId) {
+      res.status(400).end();
+      return;
+    }
+
+    const id = sendInput(playerId, ADD_PLAYER_INPUT, {
+        name
     });
 
     res.json({
