@@ -71,17 +71,8 @@ export default class PlayerUi extends Component {
         if(!this.state.game){
             return <div> Loading UI...</div>;
         }
-        if(!this.state.game.name && this.state.game.phase === LOBBY_PHASE){
-            return <div>
-                <h1>Please enter your name below</h1>
-                <br />
-                <input type={"text"} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input><button onClick={(e) => this.onInputAccepted()}>Send</button>
-                </div>
-        }
-        if(this.state.game.phase === LOBBY_PHASE) {
-            return <div>
-                You are in the lobby, wait until game starts.
-            </div>;
+        if(this.state.game.phase === LOBBY_PHASE){
+          return this.renderLobby(this.state.game);
         }
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
             return <div>Your code name is: <span style={codenameStyle}>{this.state.game.selfCodename}</span></div>
@@ -103,5 +94,41 @@ export default class PlayerUi extends Component {
                 />}
             </div>
         }
+    }
+
+    renderLobby(game) {
+        console.log(game);
+
+        if(!game.name){
+            return <div>
+                <h1>Please enter your name below</h1>
+                <br />
+                <input type={"text"}
+                      ref={(input) => { this.input = input; }}
+                      onKeyPress={(e) => this.onInputKeyDown(e)}>
+                </input>
+
+                <button onClick={(e) => this.onInputAccepted()}>
+                  Send
+                </button>
+                </div>
+        }
+
+          return (
+            <div>
+            <h1>
+                You are in the lobby, wait until game starts.
+            </h1>
+
+            <p>{ game.players.length } player(s) joined:</p>
+
+            { game.players.map(player => (
+                <span className="badge badge-pill badge-secondary"
+                      style={{ fontSize: '1.5em', marginRight: '0.5em' }}>
+                      { player.name }
+                </span>
+            )) }
+            </div>
+          );
     }
 }

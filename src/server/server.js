@@ -8,6 +8,8 @@ import webpackConfig from '../../webpack.config.js';
 import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
 import {get} from "lodash";
 
+const _ = require('lodash');
+
 const compiler = webpack(webpackConfig);
 const app = express();
 const isProd = process.env.NODE_ENV === 'production';
@@ -65,7 +67,8 @@ app.get('/state', async (req, res) => {
                 ...get(latestGameState, ['players', clientId], {}),
                 selfCodename: player.codeName,
                 partnerCodename: otherPlayer.codeName,
-                selfPIN: player.password
+                selfPIN: player.password,
+                players: _.values(latestGameState.players)
             }
         }
     }));
