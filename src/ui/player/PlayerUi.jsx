@@ -9,7 +9,7 @@ const codenameStyle = {
     display: 'block',
     fontSize: '49px',
     width: '50vw',
-    maxWidth: '160px',
+    maxWidth: '240px',
     margin: '0 auto'
 }
 
@@ -93,10 +93,10 @@ export default class PlayerUi extends Component {
           return this.renderLobby(this.state.game);
         }
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
-            return <div>Your code name is: {this.renderCodename(this.state.game.selfCodename)}</div>
+            return <h3>Your CODEFACE is: {this.renderCodename(this.state.game.selfCodename)}</h3>
         }
         if(this.state.game.phase === PARTNER_CODENAME_PHASE ) {
-            return <div>Your partner code name is: {this.renderCodename(this.state.game.partnerCodename)}</div>
+            return <h3>Your partner's CODEFACE is: {this.renderCodename(this.state.game.partnerCodename)}</h3>
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
