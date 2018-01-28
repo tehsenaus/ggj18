@@ -216,7 +216,7 @@ export default class PlayerUi extends Component {
             { game.players.map(player => (
                 <span className="badge badge-pill badge-secondary"
                       style={{ fontSize: '1.5em', marginRight: '0.5em' }}>
-                      { player.name }
+                      { player.playerId === game.playerId ?   `YOU (${player.name})` : player.name }
                 </span>
             )) }
             </div>
