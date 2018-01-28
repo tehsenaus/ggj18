@@ -2,7 +2,19 @@ import { h, Component } from 'preact';
 import guid from '../../common/guid'
 import {CODE_NAMES, INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
-import { values, get, sortBy } from 'lodash';
+
+import values from 'lodash.values';
+import get from 'lodash.get';
+
+function sortBy(arr, f){
+    return arr.slice(0).sort(function(a, b){
+        if (f(a) > f(b))
+         return -1;
+      if (f(a) < f(b))
+        return 1;
+      return 0;
+    });
+}
 
 const USER_HASH_KEY = 'user_hash';
 
