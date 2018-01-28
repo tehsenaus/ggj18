@@ -58,22 +58,22 @@ app.get('/state', async (req, res) => {
 
         if (isHost) {
             return latestGameState;
-        } else {
-            const players = latestGameState.round && latestGameState.round.players || {};
-            const player = players[clientId] || {};
-            const otherPlayer = players[player.otherPlayerId] || {};
-            return {
-                phase : latestGameState.phase,
-                ...get(latestGameState, ['players', clientId], {}),
-                selfCodename: player.codeName,
-                partnerCodename: otherPlayer.codeName,
-                selfPIN: player.password,
-                players: _.values(latestGameState.players),
-                roundPlayers: [ROUND_END_PHASE, GAME_END_PHASE].indexOf(latestGameState.phase) >= 0 ? players : {},
-                scores: latestGameState.scores,
-                roundNumber: latestGameState.round && latestGameState.round.roundNumber,
-                score: get(latestGameState, ['scores', clientId], 0),
-            }
+        }
+        
+        const players = latestGameState.round && latestGameState.round.players || {};
+        const player = players[clientId] || {};
+        const otherPlayer = players[player.otherPlayerId] || {};
+        return {
+            phase : latestGameState.phase,
+            ...get(latestGameState, ['players', clientId], {}),
+            selfCodename: player.codeName,
+            partnerCodename: otherPlayer.codeName,
+            selfPIN: player.password,
+            players: _.values(latestGameState.players),
+            roundPlayers: [ROUND_END_PHASE, GAME_END_PHASE].indexOf(latestGameState.phase) >= 0 ? players : {},
+            scores: latestGameState.scores,
+            roundNumber: latestGameState.round && latestGameState.round.roundNumber,
+            score: get(latestGameState, ['scores', clientId], 0),
         }
     }));
 });

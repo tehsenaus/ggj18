@@ -39,7 +39,7 @@ export default class PlayerUi extends Component {
     componentDidMount() {
         this.pollState();
     }
-    
+
     pollState() {
         let userHash = localStorage.getItem(USER_HASH_KEY);
         if(!userHash){
@@ -111,6 +111,11 @@ export default class PlayerUi extends Component {
         if(this.state.game.phase === LOBBY_PHASE){
           return this.renderLobby(this.state.game);
         }
+
+        if (!this.state.game.name) {
+          return <div>You are not in the game! Wait for next game to start.</div>
+        }
+
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
             return <h3>Your CODEFACE is: {this.renderCodename(this.state.game.selfCodename)}</h3>
         }
