@@ -81,7 +81,7 @@ export default class PlayerUi extends Component {
     };
 
     render() {
-        return <div style={{ textAlign: 'center' }}>
+        return <div className="ui__player">
             { this.renderMain() }
         </div>
     }
