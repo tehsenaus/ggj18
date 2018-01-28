@@ -25,8 +25,10 @@ export default class App extends Component {
                 const res = await fetch('/state?id='+clientId+'&seq=' + this.state.seqNo);
                 const json = await res.json();
 
+                const playerJoined = this.state.game && this.state.game.players && json.game.players && Object.keys(this.state.game.players).length === (Object.keys(json.game.players).length - 1)
+
                 if(this.state.game &&
-                    (this.state.game.phase === LOBBY_PHASE
+                    ((this.state.game.phase === LOBBY_PHASE && playerJoined)
                         || this.state.game.phase === YOUR_CODENAME_PHASE
                         || this.state.game.phase === PARTNER_CODENAME_PHASE)){
 
@@ -44,9 +46,11 @@ export default class App extends Component {
                     }
                 }
 
-                if(this.state.game && this.state.game.phase === ROUND_END_PHASE && this.music){
-                    this.music.pause();
-                    this.music.currentTime = 0;
+                if(this.state.game && (this.state.game.phase === ROUND_END_PHASE || this.state.game.phase === LOBBY_PHASE) && this.music){
+                    if(this.music){
+                        this.music.pause();
+                        this.music.currentTime = 0;
+                    }
                 }
 
 
