@@ -2,6 +2,7 @@ import { h, Component } from 'preact';
 import guid from '../../common/guid'
 import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
+import PoseViewer from "../components/PoseViewer";
 
 const USER_HASH_KEY = 'user_hash';
 
@@ -76,7 +77,8 @@ export default class PlayerUi extends Component {
                 <h1>Please enter your name below</h1>
                 <br />
                 <input type={"text"} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input><button onClick={(e) => this.onInputAccepted()}>Send</button>
-                </div>
+                {/*<PoseViewer poseIndex={3} debug={true} />*/}
+            </div>
         }
         if(this.state.game.phase === LOBBY_PHASE) {
             return <div>
@@ -84,10 +86,17 @@ export default class PlayerUi extends Component {
             </div>;
         }
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
-            return <div>Your code name is: <span style={codenameStyle}>{this.state.game.selfCodename}</span></div>
+            return <div>
+                <h3>Do this:</h3>
+                <br />
+                {this.state.game.selfCodename && <PoseViewer poseIndex={this.state.game.selfCodename}/>}
+            </div>
         }
         if(this.state.game.phase === PARTNER_CODENAME_PHASE ) {
-            return <div>Your partner code name is: <span style={codenameStyle}>{this.state.game.partnerCodename}</span></div>
+            return <div>
+                <h3>Your partner will do this:</h3>
+                {this.state.game.partnerCodename && <PoseViewer poseIndex={this.state.game.partnerCodename}/>}
+            </div>
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
