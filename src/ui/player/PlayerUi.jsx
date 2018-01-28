@@ -7,7 +7,10 @@ const USER_HASH_KEY = 'user_hash';
 
 const codenameStyle = {
     display: 'block',
-    fontSize: '49px'
+    fontSize: '49px',
+    width: '40vw',
+    maxWidth: '140px',
+    margin: '0 auto'
 }
 
 export default class PlayerUi extends Component {
@@ -90,10 +93,10 @@ export default class PlayerUi extends Component {
           return this.renderLobby(this.state.game);
         }
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
-            return <div>Your code name is: <span style={codenameStyle}>{this.state.game.selfCodename}</span></div>
+            return <div>Your code name is: {this.renderCodename(this.state.game.selfCodename)}</div>
         }
         if(this.state.game.phase === PARTNER_CODENAME_PHASE ) {
-            return <div>Your partner code name is: <span style={codenameStyle}>{this.state.game.partnerCodename}</span></div>
+            return <div>Your partner code name is: {this.renderCodename(this.state.game.partnerCodename)}</div>
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
@@ -109,6 +112,20 @@ export default class PlayerUi extends Component {
                 />}
             </div>
         }
+    }
+
+    renderCodename(codename) {
+        //<span style={codenameStyle}>{this.state.game.selfCodename}</span>
+        var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const size = iOS ? 80 : 48;
+        return <canvas ref={e => {
+            if (e) {
+                var ctx = e.getContext('2d');
+                ctx.clearRect(0, 0, e.width, e.height);
+                ctx.font = size + 'px sans-serif';
+                ctx.fillText(codename, 0, size);
+            }
+        }} style={codenameStyle} width={size} height={size + 10} />;
     }
 
     renderLobby(game) {
