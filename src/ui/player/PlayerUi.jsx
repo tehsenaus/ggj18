@@ -104,7 +104,7 @@ export default class PlayerUi extends Component {
                 <h1>Your PIN: {this.state.game.selfPIN}</h1>
                 <h1>PIN to find:</h1>
                 <br />
-                <input type={"number"} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                <input type={"number"} maxLength={32} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 <br />
                 {this.state.inputState === VALIDATED_CORRECT && <h3>Correct!</h3> }
                 {this.state.inputState === VALIDATED_NOT_CORRECT && <h3>PIN Not Correct!</h3> }
@@ -147,7 +147,8 @@ export default class PlayerUi extends Component {
                 <h1>Please enter your name below</h1>
                 <br />
                 <input type={"text"}
-                      ref={(input) => { this.input = input; }}
+                       maxLength={32}
+                       ref={(input) => { this.input = input; }}
                       onKeyPress={(e) => this.onInputKeyDown(e)}>
                 </input>
 
