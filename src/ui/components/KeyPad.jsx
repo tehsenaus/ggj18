@@ -40,7 +40,7 @@ export default class KeyPad extends Component {
             <table style={tableStyle}>
                 {this.state.rows.map(row => <tr>{row.map(cell => <td style={cellStyle}>
                     <button className={"btn " + (cell == 'del' ? 'btn-danger' : cell == 'ent' ? 'btn-success' : 'btn-primary')}
-                        style={{width: '100%', height:'12.5vh'}}
+                        style={{width: '100%', height:'11.5vh'}}
                         onClick={() => this.onCellSelected(cell)}
                     >
                         {cell}
