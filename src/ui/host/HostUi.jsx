@@ -71,7 +71,7 @@ export default class App extends Component {
                     && this.renderCountdown(phase) }
 
 
-                { (phase === ROUND_END_PHASE || phase === GAME_END_PHASE) && this.renderLeaderboard(players, phase) }
+                { (phase === ROUND_END_PHASE || phase === GAME_END_PHASE) && this.renderLeaderboard(players, phase, round) }
 
                 <pre>
                     { JSON.stringify(this.state, null, 2) }
@@ -113,7 +113,7 @@ export default class App extends Component {
         )
     }
 
-    renderLeaderboard(players, phase) {
+    renderLeaderboard(players, phase, round) {
         const scores = get(this.state, ['game', 'scores'], {});
         players = sortBy(players, (p) => -(scores[p.playerId] || 0));
 
@@ -130,7 +130,7 @@ export default class App extends Component {
                     { values(players).map((player, i) => (
                         <tr style={{ fontSize: i === 0 ? '2em' : '1em' }}>
                             <td>{ i === 0 && phase === GAME_END_PHASE ? '🏆' : '#'+(i+1) }</td>
-                            <td>{ player.name }</td>
+                            <td>{ player.name } {(round.players[player.playerId] && round.players[player.playerId].codeName) || ''}</td>
                             <td>{ scores[player.playerId] || 0 }</td>
                         </tr>
                     )) }

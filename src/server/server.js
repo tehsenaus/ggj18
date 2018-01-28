@@ -5,7 +5,7 @@ import express from 'express';
 import {runGameLoop} from './loop';
 import {runGame} from './game';
 import webpackConfig from '../../webpack.config.js';
-import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
+import {HOST_ID, ROUND_END_PHASE, GAME_END_PHASE, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
 import {get} from "lodash";
 
 const _ = require('lodash');
@@ -69,6 +69,7 @@ app.get('/state', async (req, res) => {
                 partnerCodename: otherPlayer.codeName,
                 selfPIN: player.password,
                 players: _.values(latestGameState.players),
+                roundPlayers: [ROUND_END_PHASE, GAME_END_PHASE].indexOf(latestGameState.phase) >= 0 ? players : {},
                 scores: latestGameState.scores,
                 roundNumber: latestGameState.round && latestGameState.round.roundNumber,
                 score: get(latestGameState, ['scores', clientId], 0),
