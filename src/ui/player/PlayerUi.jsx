@@ -38,7 +38,7 @@ export default class PlayerUi extends Component {
                 this.setState({
                     ...json,
                     userHash,
-                    inputState: NOT_VALIDATED
+                    inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState
                 });
                 setTimeout(loop, 5);
             } catch (e) {
@@ -64,10 +64,17 @@ export default class PlayerUi extends Component {
             const passcode = this.input.value;
             fetch("/password?id=" + this.state.userHash + "&passcode=" + passcode, {method: "POST"})
             .then((response) => {
+                return response.json();
+            })
+            .then((response) => {
                 this.setState({
                     ...this.state,
                     inputState: response.correct ? VALIDATED_CORRECT : VALIDATED_NOT_CORRECT
                 })
+
+                if(this.state.inputState === VALIDATED_NOT_CORRECT){
+                    this.input.value = '';
+                }
             })
         }
     };
