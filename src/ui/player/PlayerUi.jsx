@@ -1,13 +1,13 @@
 import { h, Component } from 'preact';
 import guid from '../../common/guid'
-import {INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE} from "../../common/constants";
+import {CODE_NAMES, INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
 
 const USER_HASH_KEY = 'user_hash';
 
 const codenameStyle = {
     display: 'block',
-    fontSize: '8em'
+    fontSize: '40px'
 }
 
 export default class PlayerUi extends Component {
@@ -17,7 +17,20 @@ export default class PlayerUi extends Component {
         this.input = null;
     }
 
+    mockState() {
+        this.setState({
+            game: {
+                phase: YOUR_CODENAME_PHASE,
+                selfCodename: CODE_NAMES[10]
+            }
+        });
+    }
+
     componentDidMount() {
+        this.mockState();
+    }
+    
+    pollState() {
         let userHash = localStorage.getItem(USER_HASH_KEY);
         if(!userHash){
             userHash = guid();
@@ -33,7 +46,7 @@ export default class PlayerUi extends Component {
 
                 this.setState({
                     ...json,
-                    userHash
+                    userHash,
                 });
                 setTimeout(loop, 5);
             } catch (e) {
