@@ -25,16 +25,47 @@ export default class PlayerUi extends Component {
         this.input = null;
     }
 
-    mockState() {
-        this.setState({
-            game: {
-                phase: YOUR_CODENAME_PHASE,
-                selfCodename: CODE_NAMES[Math.floor(Math.random() * CODE_NAMES.length)]
-            }
-        });
+    // mockState() {
+    //     this.setState({
+    //         game: {
+    //             phase: YOUR_CODENAME_PHASE,
+    //             selfCodename: CODE_NAMES[Math.floor(Math.random() * CODE_NAMES.length)]
+    //         }
+    //     });
 
-        setTimeout(() => this.mockState(), 1000);
-    }
+    //     setTimeout(() => this.mockState(), 1000);
+    // }
+
+//     mockFirstCodefaceState() {
+//         this.setState({
+//   "seqNo": 8,
+//   "userHash": "3b6bd488-210b-c656-81bb-e563c9aea67f",
+//   "inputState": "not-validated",
+//   "game": {
+//     "phase": "yourCodename",
+//     "playerId": "3b6bd488-210b-c656-81bb-e563c9aea67f",
+//     "name": "S",
+//     "selfCodename": "😥",
+//     "partnerCodename": "😘",
+//     "selfPIN": "209",
+//     "players": [
+//       {
+//         "playerId": "3b6bd488-210b-c656-81bb-e563c9aea67f",
+//         "name": "S"
+//       },
+//       {
+//         "playerId": "abaa7e2c-0053-7f19-1a6c-0901b361d949",
+//         "name": "K"
+//       }
+//     ],
+//     "roundPlayers": {},
+//     "scores": {},
+//     "roundNumber": 0,
+//     "score": 0,
+//     "countdownTimeSecs": 5
+//   }
+// });
+//     }
 
     componentDidMount() {
         this.pollState();
@@ -59,6 +90,7 @@ export default class PlayerUi extends Component {
                     userHash,
                     inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState
                 });
+
                 setTimeout(loop, 5);
             } catch (e) {
                 console.error('poll loop error', e);
@@ -101,6 +133,10 @@ export default class PlayerUi extends Component {
     render() {
         return <div style={{ textAlign: 'center' }}>
             { this.renderMain() }
+
+            {/* <pre>
+                { JSON.stringify(this.state, null, 2) }
+            </pre> */}
         </div>
     }
 
@@ -178,14 +214,14 @@ export default class PlayerUi extends Component {
         var iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         const size = iOS ? 80 : 48;
         const pad = 10;
-        return <canvas ref={e => {
+        return <canvas style={codenameStyle} width={size + pad * 2} height={size + 10} ref={e => {
             if (e) {
                 var ctx = e.getContext('2d');
                 ctx.clearRect(0, 0, e.width, e.height);
                 ctx.font = size + 'px sans-serif';
                 ctx.fillText(codename, pad, size);
             }
-        }} style={codenameStyle} width={size + pad * 2} height={size + 10} />;
+        }} />;
     }
 
     renderLobby(game) {
