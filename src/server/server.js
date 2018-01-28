@@ -4,19 +4,22 @@ import webpack from 'webpack';
 import express from 'express';
 import {runGameLoop} from './loop';
 import {runGame} from './game';
-import webpackConfig from '../../webpack.client.config';
+import webpackConfig from '../../webpack.config.js';
 import {HOST_ID, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
 import {get} from "lodash";
 
 const compiler = webpack(webpackConfig);
 const app = express();
+const isProd = process.env.NODE_ENV === 'production';
+
+console.log('env:', process.env.NODE_ENV);
 
 app.use(webpackDevMiddleware(compiler,{
     noInfo: false,
     publicPath: '/',
 }));
 
-app.use(webpackHotMiddleware(compiler));
+if (!isProd) app.use(webpackHotMiddleware(compiler));
 
 const {
     sendInput,
