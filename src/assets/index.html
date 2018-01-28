@@ -36,6 +36,11 @@
     --breakpoint-lg: 992px;
     --breakpoint-xl: 1200px;
     */
+
+html, body {
+    height: 100%;
+}
+
 html {
     background-color: var(--gray-dark);
 }
@@ -52,8 +57,7 @@ body {
 .ui__player {
     display: flex;
     flex: 1;
-    justify-content: center;
-    text-align: center;
+    padding-bottom: 60%;
 }
 .input__pin {
     display: flex;
@@ -63,7 +67,7 @@ body {
 }
 .input__pin input {
     flex: 1;
-    font-size: 2.4em;
+    font-size: 2em;
     border: 2px solid var(--light);
     background-color: rgba(255, 255, 255, 0.16);
     outline: 0;
@@ -75,6 +79,34 @@ body {
 
 .btn {
     border-radius: 3px;
+}
+.badge {
+    background-color: var(--primary);
+}
+
+.o-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+.o-flex--1 { flex: 1; }
+.o-flex--2 { flex: 2; }
+.o-flex--3 { flex: 3; }
+.o-flex--4 { flex: 4; }
+
+br {
+    height: 0; line-height: 0;
+}
+.ui__keypad {
+    position: fixed;
+    bottom: 10px;
+    top: 50%;
+    left: 0; right: 0;
+    padding: 10px;
+}
+.ui__keypad table {
+    width: 100%;
 }
 </style>    
 </head>

@@ -100,7 +100,11 @@ export default class PlayerUi extends Component {
                 this.setState({
                     ...json,
                     userHash,
-                    inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState
+                    inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState,
+                    game: {
+                        phase: INPUT_PASSWORDS_PHASE,
+                        name: 'yolo'
+                    }
                 });
 
                 setTimeout(loop, 5);
@@ -143,7 +147,7 @@ export default class PlayerUi extends Component {
     };
 
     render() {
-        return <div className="ui__player">
+        return <div className="ui__player o-flex">
             { this.renderMain() }
 
             {/* <pre>
@@ -182,13 +186,13 @@ export default class PlayerUi extends Component {
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
-                <h1>Your PIN: {this.state.game && this.state.game.selfPIN}</h1>
-                <h1>PIN to find:</h1>
-                <br />
+                <h2>Your PIN: {this.state.game && this.state.game.selfPIN}</h2>
+                <h2>PIN to find:</h2>
+                
                 <div className="input__pin">
-                    <input type={"number"} maxLength={32} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                    <input type={"number"} maxLength={3} disabled={true} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 </div>
-                <br />
+                
                 {this.state.inputState === VALIDATED_CORRECT && <h3>Correct!</h3> }
                 {this.state.inputState === VALIDATED_NOT_CORRECT && <h3>PIN Not Correct!</h3> }
                 {<KeyPad
@@ -240,9 +244,9 @@ export default class PlayerUi extends Component {
 
     renderLobby(game) {
         if(!game.name){
-            return <div className="ui__lobby">
+            return <div className="o-flex--1 ui__lobby o-flex">
                 <h1>Please enter your name below</h1>
-                <br />
+                
                 <input type={"text"}
                        maxLength={32}
                        ref={(input) => { this.input = input; }}
@@ -256,19 +260,27 @@ export default class PlayerUi extends Component {
         }
 
           return (
-            <div className="ui__lobby ui__lobby--has-entered">
-            <h1>
-                You are in the lobby, wait until game starts.
-            </h1>
+            <div className="o-flex--1 ui__lobby ui__lobby--has-entered">
 
-            <p>{ game.players.length } player(s) joined:</p>
+                <h2>You are in the lobby, wait until game starts.</h2>
 
-            { game.players.map(player => (
-                <span className="badge badge-pill badge-secondary"
-                      style={{ fontSize: '1.5em', marginRight: '0.5em' }}>
-                      { player.playerId === game.playerId ?   `YOU (${player.name})` : player.name }
-                </span>
-            )) }
+                <p>{ game.players.length } player(s) joined:</p>
+
+                { game.players.map(player => {
+                    const isCurrent = player.playerId === localStorage.getItem(USER_HASH_KEY)
+                    return <span className="badge badge-pill badge-secondary"
+                        style={{ 
+                            fontSize: '1.5em', 
+                            marginRight: '0.5em', 
+                            ...(isCurrent ? {
+                                backgroundColor: 'var(--primary)'
+                            }:{
+                                backgroundColor: 'var(--secondary)'
+                            })
+                        }}>
+                        { player.playerId === game.playerId ?   `YOU (${player.name})` : player.name }
+                    </span>
+                }) }
             </div>
           );
     }
