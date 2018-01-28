@@ -8,9 +8,9 @@ import get from 'lodash.get';
 
 function sortBy(arr, f){
     return arr.slice(0).sort(function(a, b){
-        if (f(a) > f(b))
+        if (f(a) < f(b))
          return -1;
-      if (f(a) < f(b))
+      if (f(a) > f(b))
         return 1;
       return 0;
     });
