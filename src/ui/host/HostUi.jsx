@@ -46,7 +46,7 @@ export default class App extends Component {
         const { phase, players, round } = this.state.game || {};
 
         return (
-            <div>
+            <div className="ui__host">
                 <p className="text-center">
                     <h1>{ GAME_TITLE }</h1>
 

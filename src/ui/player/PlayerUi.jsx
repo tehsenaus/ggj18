@@ -101,10 +101,12 @@ export default class PlayerUi extends Component {
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
-                <h1>Your PIN: {this.state.game.selfPIN}</h1>
+                <h1>Your PIN: {this.state.game && this.state.game.selfPIN}</h1>
                 <h1>PIN to find:</h1>
                 <br />
-                <input type={"number"} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                <div className="input__pin">
+                    <input type={"number"} maxLength={3} disabled={true} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
+                </div>
                 <br />
                 {this.state.inputState === VALIDATED_CORRECT && <h3>Correct!</h3> }
                 {this.state.inputState === VALIDATED_NOT_CORRECT && <h3>PIN Not Correct!</h3> }
@@ -143,7 +145,7 @@ export default class PlayerUi extends Component {
         console.log(game);
 
         if(!game.name){
-            return <div>
+            return <div className="ui__lobby">
                 <h1>Please enter your name below</h1>
                 <br />
                 <input type={"text"}
@@ -158,7 +160,7 @@ export default class PlayerUi extends Component {
         }
 
           return (
-            <div>
+            <div className="ui__lobby ui__lobby--has-entered">
             <h1>
                 You are in the lobby, wait until game starts.
             </h1>
