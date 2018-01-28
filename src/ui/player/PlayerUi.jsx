@@ -117,10 +117,20 @@ export default class PlayerUi extends Component {
         }
 
         if(this.state.game.phase === YOUR_CODENAME_PHASE ) {
-            return <h3>Your CODEFACE is: {this.renderCodename(this.state.game.selfCodename)}</h3>
+            return (
+              <div>
+                <h3>Your CODEFACE is: {this.renderCodename(this.state.game.selfCodename)}</h3>
+                {this.renderCountdown(this.state.game.countdownTimeSecs)}
+              </div>
+          );
         }
         if(this.state.game.phase === PARTNER_CODENAME_PHASE ) {
-            return <h3>Your partner's CODEFACE is: {this.renderCodename(this.state.game.partnerCodename)}</h3>
+            return (
+              <div>
+                <h3>Your partner's CODEFACE is: {this.renderCodename(this.state.game.partnerCodename)}</h3>
+                {this.renderCountdown(this.state.game.countdownTimeSecs)}
+              </div>
+            );
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
@@ -147,6 +157,7 @@ export default class PlayerUi extends Component {
               <h1>Round End!</h1>
               <p>Your score: {this.state.game.score}</p>
               <p>Get ready for round { this.state.game.roundNumber + 2 }!</p>
+              {this.renderCountdown(this.state.game.countdownTimeSecs)}
             </div>
           );
         }
@@ -235,5 +246,17 @@ export default class PlayerUi extends Component {
                 </tbody>
             </table>
         );
+    }
+
+    renderCountdown(countdownTimeSecs) {
+      if (!countdownTimeSecs) {
+        return <span></span>
+      }
+
+        return (
+            <div className="text-center">
+                <h1 style={{ fontSize: '5em' }}>{ countdownTimeSecs } </h1>
+            </div>
+        )
     }
 }

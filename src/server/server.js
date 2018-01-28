@@ -59,7 +59,7 @@ app.get('/state', async (req, res) => {
         if (isHost) {
             return latestGameState;
         }
-        
+
         const players = latestGameState.round && latestGameState.round.players || {};
         const player = players[clientId] || {};
         const otherPlayer = players[player.otherPlayerId] || {};
@@ -74,6 +74,7 @@ app.get('/state', async (req, res) => {
             scores: latestGameState.scores,
             roundNumber: latestGameState.round && latestGameState.round.roundNumber,
             score: get(latestGameState, ['scores', clientId], 0),
+            countdownTimeSecs: latestGameState.countdownTimeSecs
         }
     }));
 });
