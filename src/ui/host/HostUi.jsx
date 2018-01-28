@@ -115,6 +115,7 @@ export default class App extends Component {
             <h2>{ players.length } player(s) joined:</h2>
 
             { players.map(player => (
+                
                 <span className="badge badge-pill badge-secondary" style={{ fontSize: '1.5em', marginRight: '0.5em' }}>{ player.name }</span>
             )) }
         </p>

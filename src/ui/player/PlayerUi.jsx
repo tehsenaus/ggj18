@@ -173,7 +173,7 @@ export default class PlayerUi extends Component {
                 <h1>Your PIN: {this.state.game && this.state.game.selfPIN}</h1>
                 <h1>PIN to find:</h1>
                 <br />
-                <div className="input__pin">
+                <div className="ui__input__pin">
                     <input type={"number"} maxLength={32} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 </div>
                 <br />
@@ -251,12 +251,21 @@ export default class PlayerUi extends Component {
 
             <p>{ game.players.length } player(s) joined:</p>
 
-            { game.players.map(player => (
-                <span className="badge badge-pill badge-secondary"
-                      style={{ fontSize: '1.5em', marginRight: '0.5em' }}>
+            { game.players.map(player => {
+                const isCurrent = player.playerId === localStorage.getItem(USER_HASH_KEY)
+                return <span className="badge badge-pill badge-secondary"
+                      style={{ 
+                          fontSize: '1.5em', 
+                          marginRight: '0.5em', 
+                          ...(isCurrent ? {
+                            backgroundColor: 'var(--primary)'
+                          }:{
+                              backgroundColor: 'var(--secondary)'
+                          })
+                          }}>
                       { player.playerId === game.playerId ?   `YOU (${player.name})` : player.name }
                 </span>
-            )) }
+            }) }
             </div>
           );
     }
