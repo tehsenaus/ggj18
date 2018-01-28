@@ -8,7 +8,11 @@ const USER_HASH_KEY = 'user_hash';
 const codenameStyle = {
     display: 'block',
     fontSize: '8em'
-}
+};
+
+const NOT_VALIDATED = 'not-validated';
+const VALIDATED_CORRECT = 'validated-correct';
+const VALIDATED_NOT_CORRECT = 'validated-not-correct';
 
 export default class PlayerUi extends Component {
 
@@ -24,7 +28,7 @@ export default class PlayerUi extends Component {
             localStorage.setItem(USER_HASH_KEY, userHash);
         }
 
-        this.setState({ seqNo: -1 , userHash});
+        this.setState({ seqNo: -1 , userHash, inputState: NOT_VALIDATED});
 
         const loop = async () => {
             try {
@@ -33,7 +37,8 @@ export default class PlayerUi extends Component {
 
                 this.setState({
                     ...json,
-                    userHash
+                    userHash,
+                    inputState: NOT_VALIDATED
                 });
                 setTimeout(loop, 5);
             } catch (e) {
@@ -58,6 +63,12 @@ export default class PlayerUi extends Component {
         } else if(this.state.game.phase === INPUT_PASSWORDS_PHASE){
             const passcode = this.input.value;
             fetch("/password?id=" + this.state.userHash + "&passcode=" + passcode, {method: "POST"})
+            .then((response) => {
+                this.setState({
+                    ...this.state,
+                    inputState: response.correct ? VALIDATED_CORRECT : VALIDATED_NOT_CORRECT
+                })
+            })
         }
     };
 
@@ -96,7 +107,11 @@ export default class PlayerUi extends Component {
                 <br />
                 <input type={"number"} disabled={true} style={{fontSize:'3em',margin:'5px'}} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 <br />
+                {this.state.inputState === VALIDATED_CORRECT && <h3>Correct!</h3> }
+                {this.state.inputState === VALIDATED_NOT_CORRECT && <h3>PIN Not Correct!</h3> }
                 {<KeyPad
+                    showGlow={this.state.inputState !== NOT_VALIDATED}
+                    glowColor={this.state.inputState === VALIDATED_CORRECT ? 'green' : this.state.inputState === VALIDATED_NOT_CORRECT ? 'red' : 'gray'}
                     onKeyNumPress={(key) => this.input.value += key}
                     onDelete={() => this.input.value = this.input.value.slice(0,-1)}
                     onAccept={() => this.onInputAccepted()}
