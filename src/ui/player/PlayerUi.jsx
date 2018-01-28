@@ -183,9 +183,9 @@ export default class PlayerUi extends Component {
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
                 <h2>Your PIN: {this.state.game && this.state.game.selfPIN}</h2>
-                <h2>PIN to find:</h2>
+                <h2>PIN to find:</h2> 
                 
-                <div className="input__pin">
+                <div className="input__screen">
                     <input type={"number"} maxLength={3} disabled={true} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 </div>
                 
@@ -204,7 +204,7 @@ export default class PlayerUi extends Component {
         if(this.state.game.phase === ROUND_END_PHASE) {
           return (
             <div>
-              <h1>Round End!</h1>
+              <h2>Round End!</h2>
               <p>Your score: {this.state.game.score}</p>
               <p>Get ready for round { this.state.game.roundNumber + 2 }!</p>
               {this.renderCountdown(this.state.game.countdownTimeSecs)}
@@ -215,7 +215,7 @@ export default class PlayerUi extends Component {
         if(this.state.game.phase === GAME_END_PHASE) {
             return (
               <div>
-                <h1>Game Over!</h1>
+                <h2>Game Over!</h2>
                 {this.renderLeaderboard(this.state.game.scores, this.state.game.players, this.state.game.playerId, this.state.game.roundPlayers)}
 
               </div>
@@ -240,18 +240,22 @@ export default class PlayerUi extends Component {
 
     renderLobby(game) {
         if(!game.name){
-            return <div className="o-flex--1 ui__lobby o-flex">
-                <h1>Please enter your name below</h1>
+            return <div className="o-flex--1 ui__lobby">
+                <h2>Please enter your name below</h2>
                 
-                <input type={"text"}
-                       maxLength={32}
-                       ref={(input) => { this.input = input; }}
-                      onKeyPress={(e) => this.onInputKeyDown(e)}>
-                </input>
-
-                <button onClick={(e) => this.onInputAccepted()}>
-                  Send
-                </button>
+                <div className="input__screen">
+                    <input type={"text"}
+                        placeholder={"Your name"}
+                        maxLength={32}
+                        ref={(input) => { this.input = input; }}
+                        onKeyPress={(e) => this.onInputKeyDown(e)}>
+                    </input>
+                    <br/>
+                    <br/>
+                    <button className=" btn-primary" onClick={(e) => this.onInputAccepted()}>
+                    Send
+                    </button>
+                </div>
                 </div>
         }
 
