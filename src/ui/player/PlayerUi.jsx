@@ -37,7 +37,7 @@ export default class PlayerUi extends Component {
     }
 
     componentDidMount() {
-        this.mockState();
+        this.pollState();
     }
     
     pollState() {
