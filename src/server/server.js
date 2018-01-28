@@ -50,17 +50,19 @@ app.get('/state', async (req, res) => {
     const clientId = req.query.id;
     res.json(await getStateUpdate(req.query.id, req.query.seq, latestGameState => {
         const isHost = clientId === HOST_ID;
-        
+
         if (isHost) {
             return latestGameState;
         } else {
-            const otherPlayerId = get(latestGameState, ['playerPairMapping', clientId, 'otherPlayerId']);
+            const players = latestGameState.round && latestGameState.round.players || {};
+            const player = players[clientId] || {};
+            const otherPlayer = players[player.otherPlayerId] || {};
             return {
                 phase : latestGameState.phase,
                 ...get(latestGameState, ['players', clientId], {}),
-                selfCodename: get(latestGameState, ['codeNames', clientId]),
-                partnerCodename: get(latestGameState, ['codeNames', otherPlayerId]),
-                selfPIN: get(latestGameState, ['passwords', clientId])
+                selfCodename: player.codeName,
+                partnerCodename: otherPlayer.codeName,
+                selfPIN: player.password
             }
         }
     }));
