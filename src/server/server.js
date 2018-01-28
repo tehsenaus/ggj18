@@ -7,6 +7,7 @@ import {runGame} from './game';
 import webpackConfig from '../../webpack.config.js';
 import {HOST_ID, ROUND_END_PHASE, GAME_END_PHASE, ADD_PLAYER_INPUT, START_GAME_INPUT, RESET_GAME_INPUT, GUESS_PASSWORD_INPUT} from '../common/constants';
 import {get} from "lodash";
+import {randomPin} from "./utils";
 
 const _ = require('lodash');
 
@@ -23,37 +24,50 @@ app.use(webpackDevMiddleware(compiler,{
 
 if (!isProd) app.use(webpackHotMiddleware(compiler));
 
-const {
-    sendInput,
-    getStateUpdate,
-    promise
-} = runGameLoop(runGame());
+const games = {};
 
-promise.catch(e => {
-  console.error('ERROR IN GAME', e);
-});
+function createGame(clientId) {
+    let id;
+    do {
+        id = randomPin(6);
+    } while (games[id]);
 
-// setTimeout(() => {
-//     sendInput('id1', ADD_PLAYER_INPUT, {
-//         name: 'Alex'
-//     })
-// }, 10);
-//
-// setTimeout(() => {
-//     sendInput('id2', 'addPlayer', {
-//         name: 'Katie'
-//     })
-// }, 20);
-//
-// setTimeout(() => {
-//     sendInput('id3', ADD_PLAYER_INPUT, {
-//         name: 'Bob'
-//     })
-// }, 30);
+    const {
+        sendInput,
+        getStateUpdate,
+        promise
+    } = runGameLoop(runGame());
+    
+    promise.catch(e => {
+        console.error('ERROR IN GAME:', id, e);
+    }).then(() => {
+        console.log('game done:', id);
+        delete games[id];
+    });
+
+    const game = games[id] = {
+        id,
+        sendInput,
+        getStateUpdate,
+        promise,
+        hostId: clientId
+    };
+
+    return game;
+}
+
+function getGame(gameId) {
+    return games[gameId];
+}
 
 app.get('/state', async (req, res) => {
+    const game = getGame(req.query.gameId);
+    if (!game) {
+        return res.status(404).end();
+    }
+
     const clientId = req.query.id;
-    res.json(await getStateUpdate(req.query.id, req.query.seq, latestGameState => {
+    res.json(await game.getStateUpdate(req.query.id, req.query.seq, latestGameState => {
         const isHost = clientId === HOST_ID;
 
         if (isHost) {
@@ -64,6 +78,7 @@ app.get('/state', async (req, res) => {
         const player = players[clientId] || {};
         const otherPlayer = players[player.otherPlayerId] || {};
         return {
+            hostId: game.hostId,
             phase : latestGameState.phase,
             ...get(latestGameState, ['players', clientId], {}),
             selfCodename: player.codeName,
@@ -80,6 +95,9 @@ app.get('/state', async (req, res) => {
 });
 
 app.post('/player', (req, res) => {
+    const game = getGame(req.query.gameId);
+    if (!game) return res.status(400).end();
+
     const name = req.query.name;
     const playerId = req.query.id;
     if (!name || !playerId) {
@@ -87,37 +105,47 @@ app.post('/player', (req, res) => {
       return;
     }
 
-    const id = sendInput(playerId, ADD_PLAYER_INPUT, {
+    game.sendInput(playerId, ADD_PLAYER_INPUT, {
         name
     });
 
-    res.json({
-        id
-    });
+    res.end();
 });
 
 app.post('/password', async (req, res) => {
+    const game = getGame(req.query.gameId);
+    if (!game) return res.status(400).end();
+
     const clientId = req.query.id;
 
-    sendInput(clientId, GUESS_PASSWORD_INPUT, {
+    game.sendInput(clientId, GUESS_PASSWORD_INPUT, {
         password: req.query.passcode
     });
 
-    const state = await getStateUpdate(clientId, 0);
+    const state = await game.getStateUpdate(clientId, 0);
 
     res.json(get(state.game, ['round', 'players', clientId, 'guess'], {}));
 });
 
+app.post('/game', (req, res) => {
+    const {id} = createGame(req.query.id);
+    res.json({id});
+});
+
 app.delete('/game', (req, res) => {
-    if ( req.query.id === HOST_ID ) {
-        sendInput(req.query.id, RESET_GAME_INPUT, {});
-    }
+    const game = getGame(req.query.gameId);
+    if (!game) return res.status(400).end();
+
+    game.sendInput(req.query.id, RESET_GAME_INPUT, {});
     res.end();
 });
 
 app.post('/game/start', (req, res) => {
-    if ( req.query.id === HOST_ID ) {
-        sendInput(req.query.id, START_GAME_INPUT, {});
+    const game = getGame(req.query.gameId);
+    if (!game) return res.status(400).end();
+
+    if ( req.query.id === game.hostId ) {
+        game.sendInput(req.query.id, START_GAME_INPUT, {});
     }
     res.end();
 });

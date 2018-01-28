@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
 import guid from '../../common/guid'
-import {CODE_NAMES, INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from "../../common/constants";
+import {CODE_NAMES, GAME_TITLE, INPUT_PASSWORDS_PHASE, LOBBY_PHASE, PARTNER_CODENAME_PHASE, YOUR_CODENAME_PHASE, ROUND_END_PHASE, GAME_END_PHASE} from "../../common/constants";
 import KeyPad from "../components/KeyPad";
 
 import values from 'lodash.values';
@@ -17,6 +17,7 @@ function sortBy(arr, f){
 }
 
 const USER_HASH_KEY = 'user_hash';
+const GAME_ID_KEY = 'game_id';
 
 const codenameStyle = {
     display: 'block',
@@ -31,75 +32,82 @@ const VALIDATED_CORRECT = 'validated-correct';
 const VALIDATED_NOT_CORRECT = 'validated-not-correct';
 
 export default class PlayerUi extends Component {
+    onCreateGame = async () => {
+        const res = await fetch('/game?id='+localStorage.getItem(USER_HASH_KEY), {method: "POST"});
+        const {id} = await res.json();
+
+        console.log('CREATED GAME:', id);
+
+        this.setGameId(id);
+    }
+
+    startGame = async () => {
+        await fetch('/game/start?id='+localStorage.getItem(USER_HASH_KEY)+'&gameId='+this.state.gameId, {method: "POST"});
+    }
+    resetGame = async () => {
+        await fetch('/game?id='+localStorage.getItem(USER_HASH_KEY)+'&gameId='+this.state.gameId, {method: "DELETE"});
+    }
+
+    onJoinGame = () => {
+        this.setState({ 
+            ...this.state,
+            joinGame: true
+        })
+    }
 
     constructor(){
         super();
         this.input = null;
     }
 
-    // mockState() {
-    //     this.setState({
-    //         game: {
-    //             phase: YOUR_CODENAME_PHASE,
-    //             selfCodename: CODE_NAMES[Math.floor(Math.random() * CODE_NAMES.length)]
-    //         }
-    //     });
-
-    //     setTimeout(() => this.mockState(), 1000);
-    // }
-
-//     mockFirstCodefaceState() {
-//         this.setState({
-//   "seqNo": 8,
-//   "userHash": "3b6bd488-210b-c656-81bb-e563c9aea67f",
-//   "inputState": "not-validated",
-//   "game": {
-//     "phase": "yourCodename",
-//     "playerId": "3b6bd488-210b-c656-81bb-e563c9aea67f",
-//     "name": "S",
-//     "selfCodename": "😥",
-//     "partnerCodename": "😘",
-//     "selfPIN": "209",
-//     "players": [
-//       {
-//         "playerId": "3b6bd488-210b-c656-81bb-e563c9aea67f",
-//         "name": "S"
-//       },
-//       {
-//         "playerId": "abaa7e2c-0053-7f19-1a6c-0901b361d949",
-//         "name": "K"
-//       }
-//     ],
-//     "roundPlayers": {},
-//     "scores": {},
-//     "roundNumber": 0,
-//     "score": 0,
-//     "countdownTimeSecs": 5
-//   }
-// });
-//     }
-
     componentDidMount() {
-        this.pollState();
-    }
-
-    pollState() {
         let userHash = localStorage.getItem(USER_HASH_KEY);
         if(!userHash){
             userHash = guid();
             localStorage.setItem(USER_HASH_KEY, userHash);
         }
 
-        this.setState({ seqNo: -1 , userHash, inputState: NOT_VALIDATED});
+        const gameId = localStorage.getItem(GAME_ID_KEY);
+        if (gameId) this.pollState(gameId, userHash);
+        else this.setState({ userHash });
+    }
+
+    setGameId(gameId) {
+        if ( gameId ) {
+            localStorage.setItem(GAME_ID_KEY, gameId);
+            this.pollState(gameId, localStorage.getItem(USER_HASH_KEY));
+        } else {
+            localStorage.removeItem(GAME_ID_KEY);
+            this.setState({
+                ...this.state,
+                gameId: undefined,
+                game: undefined,
+                joinGame: false,
+            });
+        }
+    }
+
+    pollState(gameId, userHash) {
+        this.setState({ seqNo: -1, gameId, userHash, inputState: NOT_VALIDATED, joinGame: false });
 
         const loop = async () => {
             try {
-                const res = await fetch('/state?id='+userHash+'&seq=' + this.state.seqNo);
+                const res = await fetch('/state?id='+userHash+'&gameId='+gameId+'&seq=' + this.state.seqNo);
+                if ( res.status === 404 ) {
+                    console.log('GAME NOT FOUND', gameId);
+                    return this.setGameId(undefined);
+                }
                 const json = await res.json();
 
+                if ( gameId !== localStorage.getItem(GAME_ID_KEY) ) {
+                    console.log('stop polling:', gameId);
+                    return;
+                };
+
                 this.setState({
+                    ...this.state,
                     ...json,
-                    userHash,
+                    gameId,
                     inputState : this.state.game && this.state.game.phase === YOUR_CODENAME_PHASE ? NOT_VALIDATED : this.state.inputState,
                 });
 
@@ -120,12 +128,13 @@ export default class PlayerUi extends Component {
     };
 
     onInputAccepted(e) {
+        const gameId = this.state.gameId || localStorage.getItem(GAME_ID_KEY);
         if(this.state.game.phase === LOBBY_PHASE) {
             const username = this.input.value;
-            fetch("/player?id=" + this.state.userHash + "&name=" + encodeURIComponent(username), {method: "POST"})
+            fetch("/player?id=" + this.state.userHash +'&gameId='+gameId + "&name=" + encodeURIComponent(username), {method: "POST"})
         } else if(this.state.game.phase === INPUT_PASSWORDS_PHASE){
             const passcode = this.input.value;
-            fetch("/password?id=" + this.state.userHash + "&passcode=" + passcode, {method: "POST"})
+            fetch("/password?id=" + this.state.userHash +'&gameId='+gameId + "&passcode=" + passcode, {method: "POST"})
             .then((response) => {
                 return response.json();
             })
@@ -143,7 +152,7 @@ export default class PlayerUi extends Component {
     };
 
     render() {
-        const phase = this.state.game && this.state.game.phase;
+        const phase = this.state.game && this.state.game.phase || (this.state.joinGame && 'joinGame');
         return <div className={"ui__player o-flex phase-" + phase}>
             { this.renderMain() }
 
@@ -153,9 +162,56 @@ export default class PlayerUi extends Component {
         </div>
     }
 
+    renderCreateOrJoinGame() {
+        if ( this.state.joinGame ) {
+            return this.renderJoinGame();
+        }
+
+        return <div className="text-center">
+            <p>
+                { GAME_TITLE }
+            </p>
+
+            <p><b>Find your secret partner by their CODEFACE, and transmit your secret PIN!</b>
+                <br/><br/>
+                <span>This is a fast-paced competitive party game. Players compete over three rounds to exchange
+                PIN numbers with a random partner, and each gain a point. How do you find your partner? With their Emoji CODEFACE!</span>
+            </p>
+
+            <p>
+                <button className="btn btn-primary" onClick={(e) => this.onCreateGame()}>
+                    Create Game
+                </button>
+            </p>
+
+            <p>
+                <button className="btn btn-info" onClick={(e) => this.onJoinGame()}>
+                    Join Game
+                </button>
+            </p>
+        </div>
+    }
+
+    renderJoinGame() {
+        return <div>
+            <p>Enter the game ID:</p>
+            <div className="input__screen">
+                <input type={"number"} disabled={true} min={0} max={999999} ref={(input) => { this.gameIdInput = input; }}></input>
+            </div>
+            
+            <KeyPad
+                onKeyNumPress={(key) => this.gameIdInput.value += key}
+                onDelete={() => this.gameIdInput.value = this.gameIdInput.value.slice(0,-1)}
+                onAccept={() => {
+                    this.setGameId(this.gameIdInput.value);
+                }}
+            />
+        </div>
+    }
+
     renderMain() {
         if(!this.state.game){
-            return <div> Loading UI...</div>;
+            return this.renderCreateOrJoinGame();
         }
         if(this.state.game.phase === LOBBY_PHASE){
           return this.renderLobby(this.state.game);
@@ -217,8 +273,10 @@ export default class PlayerUi extends Component {
             return (
               <div>
                 <h2>Game Over!</h2>
+                <button className="btn btn-primary" onClick={(e) => this.resetGame()}>
+                    Play Again
+                </button>
                 {this.renderLeaderboard(this.state.game.scores, this.state.game.players, this.state.game.playerId, this.state.game.roundPlayers)}
-
               </div>
             )
         }
@@ -243,6 +301,7 @@ export default class PlayerUi extends Component {
         if(!game.name){
             return <div className="ui__lobby">
                 <h1 className={"text--screen-title text-uppercase m-b--lg"}>Codefaces</h1>
+                <p>GAME ID: {this.state.gameId} (expires in {this.state.game.countdownTimeSecs})</p>
                 <h2 className={"m-b--lg"}>Please enter your name below</h2>
                 
                 <div className="input__screen">
@@ -255,20 +314,37 @@ export default class PlayerUi extends Component {
                             onKeyPress={(e) => this.onInputKeyDown(e)}>
                         </input>
                     </div>
-                    <div>
-                    <button className="btn btn-primary" onClick={(e) => this.onInputAccepted()}>
-                    Send
-                    </button>
-                    </div>
+
+                    <p>
+                        <button className="btn btn-primary" onClick={(e) => this.onInputAccepted()}>
+                        Send
+                        </button>
+                    </p>
+
+                    <p>
+                        <a href='#' onClick={() => {
+                            this.setGameId(undefined);
+                        }}>QUIT GAME</a>
+                    </p>
                 </div>
-                </div>
+            </div>
         }
+
+        const iAmHost = game.hostId === game.playerId;
+        const canStart = game.players.length > 2;
 
           return (
             <div className=" ui__lobby ui__lobby--has-entered">
+                { iAmHost ? (
+                    canStart 
+                        ? <button className="btn btn-primary" onClick={(e) => this.startGame()}>
+                            Start Game
+                        </button>
+                        : <h2>We need more players. Send them the game ID!</h2>
+                ) : <h2>You are in the lobby, wait until game starts.</h2> }
 
-                <h2>You are in the lobby, wait until game starts.</h2>
-
+                <p>GAME ID: {this.state.gameId} (expires in {this.state.game.countdownTimeSecs})</p>
+                
                 <p>{ game.players.length } player(s) joined:</p>
 
                 { game.players.map(player => {

@@ -1,5 +1,6 @@
 
-import { sendUpdate, delay, either, call, getInput } from './loop';
+import { sendUpdate, delay, either, getInput } from './loop';
+import {call} from 'redux-saga/effects';
 import {countdown} from './utils';
 import {CODE_NAMES, RESET_GAME_INPUT, YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE, GAME_END_PHASE, LOBBY_PHASE, GUESS_PASSWORD_INPUT, ADD_PLAYER_INPUT, START_GAME_INPUT} from '../common/constants';
 const shuffle = require('shuffle-array');
@@ -8,6 +9,8 @@ import {runRound, isPlayerFinished} from './round';
 
 const ROUNDS = 3;
 const MIN_NUM_PLAYERS = 2;
+const GAME_EXPIRY_MS = 30000;
+const GAME_END_EXPIRY_MS = 120000;
 const INPUT_PASSWORDS_TIMEOUT_MS = 30000;
 const PHASE_DELAY = 5000;
 const SCORES = [3,2,1];
@@ -22,13 +25,18 @@ export function* lobby() {
     });
 
     let gameStarted = false;
-    while (!gameStarted) {
+    let expired = false;
+    while (!gameStarted && !expired) {
       yield either(
           call(getPlayer),
           call(startGame),
+          call(function *() {
+            yield* countdown(GAME_EXPIRY_MS);
+            expired = true;
+          })
       );
     }
-    return yield sendUpdate({players});
+    return yield sendUpdate({ expired, players });
 
     function* startGame() {
       yield getInput(START_GAME_INPUT);
@@ -53,8 +61,15 @@ export function* lobby() {
 
 
 export function* runGame() {
-  while (true) {
+  let expired = false;
+  while (!expired) {
     let game = yield* lobby();
+    
+    if (game.expired) {
+      console.log('GAME EXPIRED');
+      return;
+    }
+
     const players = _.values(game.players).map(player => player.playerId);
 
     for (let round = 0; round < ROUNDS; round++) {
@@ -70,11 +85,15 @@ export function* runGame() {
         yield* countdown(PHASE_DELAY);
     }
 
-    game = yield sendUpdate({phase: GAME_END_PHASE});
-    yield sendUpdate({scores: getUpdatedScores(game)});
+    yield sendUpdate({ phase: GAME_END_PHASE, scores: getUpdatedScores(game)});
 
-    yield* countdown(PHASE_DELAY);
-    yield getInput(RESET_GAME_INPUT);
+    yield either(
+        getInput(RESET_GAME_INPUT),
+        call(function *() {
+          yield* countdown(GAME_END_EXPIRY_MS);
+          expired = true;
+        })
+    );
   }
 }
 
