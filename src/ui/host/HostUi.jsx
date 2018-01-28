@@ -25,10 +25,16 @@ export default class App extends Component {
                 const res = await fetch('/state?id='+clientId+'&seq=' + this.state.seqNo);
                 const json = await res.json();
 
-                const path = require( 'file-loader!../../assets/woosh2.mp3');
-                console.log('AUDIO path: '+path);
-                const audio = new Audio(path);
-                audio.play();
+                if(this.state.game &&
+                    (this.state.game.phase === LOBBY_PHASE
+                        || this.state.game.phase === YOUR_CODENAME_PHASE
+                        || this.state.game.phase === PARTNER_CODENAME_PHASE)){
+
+                    const path = require('../../assets/whoosh.wav');
+                    console.log('AUDIO path: ' + path);
+                    const audio = new Audio(path);
+                    audio.play();
+                }
 
 
                 this.setState(json);
@@ -52,7 +58,11 @@ export default class App extends Component {
 
                     { phase === LOBBY_PHASE && <div>
                         <h5>Find your secret partner by their codeface, and <em>transmit</em> your secret PIN!</h5>
-                        <button className="btn btn-primary" onClick={this.startGame}>START GAME</button>
+                        <img src={require('../../assets/qrcode.svg')} style={{ height: '40vh', maxHeight: '29vw' }}></img>
+                        <div className="float-right" style={{ width: '70%', fontSize: '4em' }}>
+                            <a href="http://goo.gl/wa9wsa">goo.gl/wa9wsa</a>
+                        </div>
+                        <div className="clearfix"><button className="btn btn-primary" onClick={this.startGame}>START GAME</button></div>
                     </div>}
 
                     { phase === ROUND_END_PHASE && (<div>
@@ -73,9 +83,9 @@ export default class App extends Component {
 
                 { (phase === ROUND_END_PHASE || phase === GAME_END_PHASE) && this.renderLeaderboard(players, phase, round) }
 
-                <pre>
+                {/* <pre>
                     { JSON.stringify(this.state, null, 2) }
-                </pre>
+                </pre> */}
             </div>
         );
     }
