@@ -69,6 +69,7 @@ app.get('/state', async (req, res) => {
                 partnerCodename: otherPlayer.codeName,
                 selfPIN: player.password,
                 players: _.values(latestGameState.players),
+                scores: latestGameState.scores,
                 roundNumber: latestGameState.round && latestGameState.round.roundNumber,
                 score: get(latestGameState, ['scores', clientId], 0),
             }
