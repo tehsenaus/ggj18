@@ -343,7 +343,7 @@ export default class PlayerUi extends Component {
                         : <h2 className={"m-b--md"}>We need more players. Send them the game ID!</h2>
                 ) : <h2 className={"m-b--md"}>You are in the lobby, wait until game starts.</h2> }
 
-                <p>GAME ID: {this.state.gameId} (expires in {this.state.game.countdownTimeSecs})</p>
+                <p>GAME ID: <b style={{ fontSize: '1.5em' }}>{this.state.gameId}</b> (expires in {this.state.game.countdownTimeSecs})</p>
                 
                 <p>{ game.players.length } player(s) joined:</p>
 
