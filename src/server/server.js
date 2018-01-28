@@ -84,14 +84,16 @@ app.post('/player', (req, res) => {
     });
 });
 
-app.post('/password', (req, res) => {
-    const id = sendInput(req.query.id, GUESS_PASSWORD_INPUT, {
+app.post('/password', async (req, res) => {
+    const clientId = req.query.id;
+
+    sendInput(clientId, GUESS_PASSWORD_INPUT, {
         password: req.query.passcode
     });
 
-    res.json({
-        id
-    });
+    const state = await getStateUpdate(clientId, 0);
+
+    res.json(get(state.game, ['round', 'players', clientId, 'guess'], {}));
 });
 
 app.delete('/game', (req, res) => {
