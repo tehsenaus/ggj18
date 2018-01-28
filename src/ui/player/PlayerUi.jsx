@@ -143,7 +143,8 @@ export default class PlayerUi extends Component {
     };
 
     render() {
-        return <div className="ui__player o-flex">
+        const phase = this.state.game && this.state.game.phase;
+        return <div className={"ui__player o-flex phase-" + phase}>
             { this.renderMain() }
 
             {/* <pre>
@@ -246,7 +247,7 @@ export default class PlayerUi extends Component {
                 <div className="input__screen">
                     <input type={"text"}
                         placeholder={"Your name"}
-                        maxLength={32}
+                        maxLength={16}
                         ref={(input) => { this.input = input; }}
                         onKeyPress={(e) => this.onInputKeyDown(e)}>
                     </input>
