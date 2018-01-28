@@ -56,7 +56,7 @@ export default class App extends Component {
                     </div>}
 
                     { phase === ROUND_END_PHASE && (<div>
-                        <h2>Get ready for round { round + 2 }!</h2>
+                        <h2>Get ready for round { round.roundNumber + 2 }!</h2>
                     </div>)}
 
                     { phase === GAME_END_PHASE && (<div>
@@ -107,7 +107,7 @@ export default class App extends Component {
                 { phase === INPUT_PASSWORDS_PHASE && (<div>
                     <h2>Find your partner and exchange passwords! GO GO GO!!</h2>
                 </div>)}
-                
+
                 <h1 style={{ fontSize: '10em' }}>{ this.state.game.countdownTimeSecs } </h1>
             </div>
         )
@@ -115,7 +115,7 @@ export default class App extends Component {
 
     renderLeaderboard(players, phase) {
         const scores = get(this.state, ['game', 'scores'], {});
-        players = sortBy(players, (p) => -(scores[p.id] || 0));
+        players = sortBy(players, (p) => -(scores[p.playerId] || 0));
 
         return (
             <table className="table table-striped leaderboard">
@@ -131,7 +131,7 @@ export default class App extends Component {
                         <tr style={{ fontSize: i === 0 ? '2em' : '1em' }}>
                             <td>{ i === 0 && phase === GAME_END_PHASE ? '🏆' : '#'+(i+1) }</td>
                             <td>{ player.name }</td>
-                            <td>{ scores[player.id] || 0 }</td>
+                            <td>{ scores[player.playerId] || 0 }</td>
                         </tr>
                     )) }
                 </tbody>
