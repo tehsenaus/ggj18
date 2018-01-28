@@ -36,9 +36,16 @@
     --breakpoint-lg: 992px;
     --breakpoint-xl: 1200px;
     */
-
+/**
+ * Reassign variables to our theme
+ */
+:root {
+    --gray-dark: #2D2D37;
+    --primary: #02BF67;
+}
 html, body {
     height: 100%;
+    font-family: Consolas, "Courier New", Courier, monospace;
 }
 
 html {
@@ -51,8 +58,52 @@ body {
     color: var(--light);
 }
 
+/**
+ */
+.btn {
+    border-radius: 3px;
+}
+.btn:hover {
+    opacity: 0.6;
+}
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:focus {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+.badge {
+    background-color: var(--primary);
+}
+
+.o-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+.o-flex--1 { flex: 1; }
+.o-flex--2 { flex: 2; }
+.o-flex--3 { flex: 3; }
+.o-flex--4 { flex: 4; }
+
+.m-b--xs { margin-bottom: 1px; }
+.m-b--sm { margin-bottom: 12px; }
+.m-b,
+.m-b--rg { margin-bottom: 24px; }
+.m-b--md { margin-bottom: 48px; }
+.m-b--lg { margin-bottom: 96px; }
+
+/**
+ */
 
 #mount {}
+
+.text--screen-title {
+    font-family: "Andale Mono";
+}
 
 .ui__lobby {
     text-align: center;
@@ -76,43 +127,25 @@ body {
 .input__screen input {
     width: 100%;
     font-size: 2em;
-    border: 2px solid var(--light);
-    background-color: rgba(255, 255, 255, 0.16);
+    border: 0;
     outline: 0;
+    border-left: 2px solid var(--light);
+    background-color: rgba(255, 255, 255, 0.16);
     color: var(--light);
     padding: 3px 12px;
-    text-align: center;
     letter-spacing: 0.05em;
 }
 .input__screen input::placeholder {
-    color: var(--light);
+    color: rgba(255, 255, 255, 0.4);
     font-weight: 300;
     font-style: italic;
 }
 .input__screen button {
     width: 100%;
-    margin-top: 12px;
-    height: 48px;
+    height: auto;
+    font-size: 2em;
+    font-weight: bold;
 }
-
-.btn {
-    border-radius: 3px;
-}
-.badge {
-    background-color: var(--primary);
-}
-
-.o-flex {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-}
-.o-flex--1 { flex: 1; }
-.o-flex--2 { flex: 2; }
-.o-flex--3 { flex: 3; }
-.o-flex--4 { flex: 4; }
 
 .ui__keypad {
     position: fixed;

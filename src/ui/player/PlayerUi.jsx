@@ -242,11 +242,13 @@ export default class PlayerUi extends Component {
     renderLobby(game) {
         if(!game.name){
             return <div className="ui__lobby">
-                <h2>Please enter your name below</h2>
+                <h1 className={"text--screen-title text-uppercase m-b--lg"}>Codefaces</h1>
+                <h2 className={"m-b--lg"}>Please enter your name below</h2>
                 
                 <div className="input__screen">
                     <div>
                         <input type={"text"}
+                            className={"m-b--md"}
                             placeholder={"Your name"}
                             maxLength={16}
                             ref={(input) => { this.input = input; }}
