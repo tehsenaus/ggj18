@@ -67,7 +67,7 @@ export default class App extends Component {
 
                 { phase === LOBBY_PHASE && this.renderPlayerList(players) }
 
-                { ([YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE].indexOf(phase) >= 0)
+                { ([YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, ROUND_END_PHASE].indexOf(phase) >= 0)
                     && this.renderCountdown(phase) }
 
 
