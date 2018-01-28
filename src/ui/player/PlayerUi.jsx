@@ -340,8 +340,8 @@ export default class PlayerUi extends Component {
                         ? <button className="btn btn-primary" onClick={(e) => this.startGame()}>
                             Start Game
                         </button>
-                        : <h2>We need more players. Send them the game ID!</h2>
-                ) : <h2>You are in the lobby, wait until game starts.</h2> }
+                        : <h2 className={"m-b--md"}>We need more players. Send them the game ID!</h2>
+                ) : <h2 className={"m-b--md"}>You are in the lobby, wait until game starts.</h2> }
 
                 <p>GAME ID: {this.state.gameId} (expires in {this.state.game.countdownTimeSecs})</p>
                 
@@ -349,7 +349,7 @@ export default class PlayerUi extends Component {
 
                 { game.players.map(player => {
                     const isCurrent = player.playerId === localStorage.getItem(USER_HASH_KEY)
-                    return <span className="badge badge-pill badge-secondary"
+                    return <span className="badge badge-pill badge-secondary m-b--xs"
                         style={{ 
                             fontSize: '1.5em', 
                             marginRight: '0.5em', 
