@@ -61,12 +61,18 @@ export function* runGame() {
         yield sendUpdate({round});
         yield* runRound(players, round);
 
+        if (round === ROUNDS - 1) {
+          continue;
+        }
+
         game = yield sendUpdate({phase: ROUND_END_PHASE});
         yield sendUpdate({scores: getUpdatedScores(game)});
         yield* countdown(PHASE_DELAY);
     }
 
-    yield sendUpdate({phase: GAME_END_PHASE});
+    game = yield sendUpdate({phase: GAME_END_PHASE});
+    yield sendUpdate({scores: getUpdatedScores(game)});
+
     yield* countdown(PHASE_DELAY);
     yield getInput(RESET_GAME_INPUT);
   }
