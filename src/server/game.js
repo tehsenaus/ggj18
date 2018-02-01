@@ -9,10 +9,10 @@ import {runRound, isPlayerFinished} from './round';
 
 const ROUNDS = 3;
 const MIN_NUM_PLAYERS = 2;
-const GAME_EXPIRY_MS = 30000;
+const GAME_EXPIRY_MS = 60000;
 const GAME_END_EXPIRY_MS = 120000;
 const INPUT_PASSWORDS_TIMEOUT_MS = 30000;
-const PHASE_DELAY = 5000;
+const BETWEEN_ROUNDS_DELAY = 10000;
 const SCORES = [3,2,1];
 
 export function* lobby() {
@@ -72,17 +72,19 @@ export function* runGame() {
 
     const players = _.values(game.players).map(player => player.playerId);
 
+    yield sendUpdate({ phase: ROUND_END_PHASE });
+    yield* countdown(BETWEEN_ROUNDS_DELAY);
+
     for (let round = 0; round < ROUNDS; round++) {
         yield sendUpdate({round});
-        yield* runRound(players, round);
+        game = yield* runRound(players, round);
 
         if (round === ROUNDS - 1) {
           continue;
         }
 
-        game = yield sendUpdate({phase: ROUND_END_PHASE});
-        yield sendUpdate({scores: getUpdatedScores(game)});
-        yield* countdown(PHASE_DELAY);
+        yield sendUpdate({ phase: ROUND_END_PHASE, scores: getUpdatedScores(game) });
+        yield* countdown(BETWEEN_ROUNDS_DELAY);
     }
 
     yield sendUpdate({ phase: GAME_END_PHASE, scores: getUpdatedScores(game)});

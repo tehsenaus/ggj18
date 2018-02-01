@@ -1,4 +1,5 @@
 import { sendUpdate, delay, either, call, getInput } from './loop';
+import { select } from 'redux-saga/effects';
 import {countdown} from './utils';
 import {CODE_NAMES, YOUR_CODENAME_PHASE, PARTNER_CODENAME_PHASE, INPUT_PASSWORDS_PHASE, GUESS_PASSWORD_INPUT} from '../common/constants';
 const shuffle = require('shuffle-array');
@@ -23,6 +24,9 @@ export function* runRound(players, roundNumber) {
       call(() => receiveGuesses(round)),
       call(() => countdown(INPUT_PASSWORDS_TIMEOUT_MS)),
   );
+
+  // Return the latest game state, with all guesses
+  return yield select();
 }
 
 function createRound(players, roundNumber) {
@@ -76,7 +80,7 @@ function* receiveGuesses(round) {
 
 function isRoundFinished(round) {
   const players = _.values(round.players);
-  const numberCorrectPairs = players
+  const numberPairedPlayers = players
       .filter(player => {
         if (!isPlayerFinished(player)) {
           return false;
@@ -85,8 +89,12 @@ function isRoundFinished(round) {
         const otherPlayer = round.players[player.otherPlayerId];
         return isPlayerFinished(otherPlayer);
       })
-      .length / 2;
-  return numberCorrectPairs >= Math.floor(players.length / 2);
+      .length;
+
+  const smallGame = players.length < 6;
+  return smallGame
+    ? numberPairedPlayers >= Math.floor(players.length / 2)
+    : numberPairedPlayers >= players.length;
 }
 
 export function isPlayerFinished(player) {

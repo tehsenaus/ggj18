@@ -239,15 +239,17 @@ export default class PlayerUi extends Component {
         }
         if(this.state.game.phase === INPUT_PASSWORDS_PHASE) {
             return <div style={{textAlign:'center', width:'100%'}}>
+                <p>Find your partner and exhange PINs!</p>
                 <h2>Your PIN: {this.state.game && this.state.game.selfPIN}</h2>
-                <h2>PIN to find:</h2> 
+                {this.renderCountdown(this.state.game.countdownTimeSecs)}
+                <p>Enter partner's PIN:</p>
                 
                 <div className="input__screen">
                     <input type={"number"} maxLength={3} disabled={true} min={0} max={999} ref={(input) => { this.input = input; }} onKeyPress={(e) => this.onInputKeyDown(e)}></input>
                 </div>
                 
                 {this.state.inputState === VALIDATED_CORRECT && <h3>Correct!</h3> }
-                {this.state.inputState === VALIDATED_NOT_CORRECT && <h3>PIN Not Correct!</h3> }
+                {this.state.inputState === VALIDATED_NOT_CORRECT && <p>PIN Not Correct!</p> }
                 {<KeyPad
                     showGlow={this.state.inputState !== NOT_VALIDATED}
                     glowColor={this.state.inputState === VALIDATED_CORRECT ? 'green' : this.state.inputState === VALIDATED_NOT_CORRECT ? 'red' : 'gray'}
@@ -259,7 +261,13 @@ export default class PlayerUi extends Component {
         }
 
         if(this.state.game.phase === ROUND_END_PHASE) {
-          return (
+          return isNaN(this.state.game.roundNumber) ? (
+            <div>
+              <h2>Get Ready!</h2>
+              <p>The game is about to start!</p>
+              {this.renderCountdown(this.state.game.countdownTimeSecs)}
+            </div>
+          ) : (
             <div>
               <h2>Round End!</h2>
               <p>Your score: {this.state.game.score}</p>
